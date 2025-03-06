@@ -1,19 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" >
-<head>
-  <meta charset="UTF-8">
-  <title>ESTADO DE EQUIPOS RTGS</title>
-  <link rel="stylesheet" href="./style.css">
-
-</head>
-<body>
-<!-- partial:index.partial.html -->
-<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Semáforo de Grúas</title>
+    <title>Semáforo de Grúas con Firebase</title>
     <style>
         body {
             text-align: center;
@@ -51,7 +41,6 @@
         #app {
             display: none;
         }
-        /* Estilo del botón de cerrar sesión */
         #logout {
             position: fixed;
             top: 10px;
@@ -75,9 +64,7 @@
     </div>
 
     <div id="app">
-        <!-- Botón de cerrar sesión -->
         <button id="logout" onclick="cerrarSesion()">X</button>
-
         <h2>Distribución de Grúas</h2>
         <div class="contenedor">
             <img src="https://i.postimg.cc/W4ftfFXY/Captura-de-pantalla-2025-03-05-044429.png" class="plano" alt="Plano de grúas">
@@ -95,22 +82,41 @@
         </div>
     </div>
 
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"></script>
     <script>
+        // Reemplaza con tu configuración de Firebase
+        const firebaseConfig = {
+    apiKey: "AIzaSyArPPyaX0NoU2Gkax8bpj5MkWTLMsyZmYQ",
+    authDomain: "estado-de-equipos-rtgs.firebaseapp.com",
+    databaseURL: "https://estado-de-equipos-rtgs-default-rtdb.firebaseio.com",
+    projectId: "estado-de-equipos-rtgs",
+    storageBucket: "estado-de-equipos-rtgs.firebasestorage.app",
+    messagingSenderId: "927929035915",
+    appId: "1:927929035915:web:7c7a5e265d8130e0ac788e",
+    measurementId: "G-MS4NL6Z4L4"
+        };
+
+        // Inicializar Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
         function verificar() {
             const password = document.getElementById("password").value;
-            const correctPassword = "gruas2025"; // Cambia esto por tu contraseña
+            const correctPassword = "gruas2025";
             if (password === correctPassword) {
-                localStorage.setItem("autenticado", "true"); // Guarda el estado de autenticación
+                localStorage.setItem("autenticado", "true");
                 document.getElementById("login").style.display = "none";
                 document.getElementById("app").style.display = "block";
-                cargarEstados(); // Cargar los estados guardados
+                cargarEstados();
             } else {
                 alert("Contraseña incorrecta");
             }
         }
 
         function cerrarSesion() {
-            localStorage.removeItem("autenticado"); // Borra la sesión
+            localStorage.removeItem("autenticado");
             document.getElementById("app").style.display = "none";
             document.getElementById("login").style.display = "flex";
         }
@@ -118,56 +124,36 @@
         function cambiarEstado(elemento) {
             let nuevoEstado = "";
             if (elemento.style.backgroundColor === "green") {
-                elemento.style.backgroundColor = "yellow";
-                elemento.style.color = "red";
                 nuevoEstado = "yellow";
             } else if (elemento.style.backgroundColor === "yellow") {
-                elemento.style.backgroundColor = "red";
-                elemento.style.color = "white";
                 nuevoEstado = "red";
             } else {
-                elemento.style.backgroundColor = "green";
-                elemento.style.color = "white";
                 nuevoEstado = "green";
             }
-            localStorage.setItem(elemento.id, nuevoEstado); // Guardar el estado de la grúa
+
+            db.ref("gruas/" + elemento.id).set(nuevoEstado);
         }
 
-        // Función para cargar los estados guardados en localStorage
         function cargarEstados() {
-            const gruas = ['grua1', 'grua2', 'grua3', 'grua4', 'grua7', 'grua6', 'grua9', 'grua5', 'grua11', 'grua8', 'grua10'];
-            gruas.forEach(grua => {
-                const estado = localStorage.getItem(grua);
-                if (estado) {
-                    const gruaElemento = document.getElementById(grua);
-                    // Verificar si el estado es almacenado como "yellow", "red", o "green"
-                    if (estado === "green") {
-                        gruaElemento.style.backgroundColor = "green";
-                        gruaElemento.style.color = "white";
-                    } else if (estado === "yellow") {
-                        gruaElemento.style.backgroundColor = "yellow";
-                        gruaElemento.style.color = "red";
-                    } else if (estado === "red") {
-                        gruaElemento.style.backgroundColor = "red";
-                        gruaElemento.style.color = "white";
+            db.ref("gruas").on("value", snapshot => {
+                snapshot.forEach(child => {
+                    const gruaElemento = document.getElementById(child.key);
+                    if (gruaElemento) {
+                        let estado = child.val();
+                        gruaElemento.style.backgroundColor = estado;
+                        gruaElemento.style.color = estado === "red" ? "white" : "black";
                     }
-                }
+                });
             });
         }
 
-        // Mantener sesión iniciada si el usuario ya ingresó antes
         window.onload = function() {
             if (localStorage.getItem("autenticado") === "true") {
                 document.getElementById("login").style.display = "none";
                 document.getElementById("app").style.display = "block";
-                cargarEstados(); // Cargar los estados de las grúas
+                cargarEstados();
             }
         };
     </script>
-</body>
-</html>
-<!-- partial -->
-  <script  src="./script.js"></script>
-
 </body>
 </html>
