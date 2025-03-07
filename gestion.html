@@ -33,6 +33,25 @@
         }
         #gestion {
             display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        #btnGestion {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: blue;
+            color: white;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
         }
         input {
             margin: 5px;
@@ -41,6 +60,7 @@
     </style>
 </head>
 <body>
+    <button id="btnGestion" onclick="mostrarGestion()">+</button>
     <div id="gestion">
         <h2>Gestión de Grúas</h2>
         <label>Número de Grúa:</label>
@@ -52,7 +72,7 @@
         <button onclick="agregarGrua()">Agregar Grúa</button>
         <h3>Grúas Registradas</h3>
         <ul id="listaGruas"></ul>
-        <button onclick="volver()">Volver</button>
+        <button onclick="cerrarGestion()">Cerrar</button>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -70,6 +90,14 @@
         };
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
+
+        function mostrarGestion() {
+            document.getElementById("gestion").style.display = "block";
+        }
+
+        function cerrarGestion() {
+            document.getElementById("gestion").style.display = "none";
+        }
 
         function agregarGrua() {
             const numGrua = document.getElementById("numGrua").value;
@@ -112,10 +140,6 @@
                 alert("Grúa eliminada");
                 listarGruas();
             });
-        }
-
-        function volver() {
-            window.location.href = "index.html"; 
         }
 
         window.onload = listarGruas;
