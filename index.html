@@ -54,6 +54,16 @@
             border-radius: 5px;
             z-index: 1000;
         }
+        #btnGestionGruas {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: green;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 5px;
+        }
     </style>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -76,6 +86,23 @@
             <div class="grua" id="grua1" style="top: 120px; left: 10px;">1</div>
             <div class="grua" id="grua10" style="top: 120px; left: 250px;">10</div>
         </div>
+        <!-- Botón para abrir la página flotante de gestión -->
+        <button id="btnGestionGruas" onclick="mostrarGestion()">Agregar Grúas</button>
+    </div>
+
+    <!-- Página flotante para gestionar grúas -->
+    <div id="gestion" style="display: none;">
+        <h2>Gestión de Grúas</h2>
+        <label>Número de Grúa:</label>
+        <input type="text" id="numGrua" placeholder="Ejemplo: 12">
+        <label>Posición X:</label>
+        <input type="number" id="posX" placeholder="Ejemplo: 100">
+        <label>Posición Y:</label>
+        <input type="number" id="posY" placeholder="Ejemplo: 50">
+        <button onclick="agregarGrua()">Agregar Grúa</button>
+        <h3>Grúas Registradas</h3>
+        <ul id="listaGruas"></ul>
+        <button onclick="cerrarGestion()">Cerrar</button>
     </div>
 
     <script>
@@ -110,34 +137,54 @@
             document.getElementById("login").style.display = "flex";
         }
 
-        function cambiarEstado(elemento) {
-            let nuevoEstado = "";
-            const gruaId = elemento.id;
-
-            if (elemento.style.backgroundColor === "green") {
-                elemento.style.backgroundColor = "yellow";
-                nuevoEstado = "yellow";
-            } else if (elemento.style.backgroundColor === "yellow") {
-                elemento.style.backgroundColor = "red";
-                nuevoEstado = "red";
-            } else {
-                elemento.style.backgroundColor = "green";
-                nuevoEstado = "green";
-            }
-
-            database.ref(gruaId).set({ estado: nuevoEstado });
+        function mostrarGestion() {
+            document.getElementById("gestion").style.display = "block";  // Muestra la página flotante
         }
 
-        function cargarEstados() {
-            const gruas = ["grua1", "grua2", "grua9", "grua10", "grua11"];
-            gruas.forEach(gruaId => {
-                database.ref(gruaId).on('value', snapshot => {
-                    const estado = snapshot.val()?.estado;
-                    const gruaElemento = document.getElementById(gruaId);
-                    if (gruaElemento) {
-                        gruaElemento.style.backgroundColor = estado || "green";
-                    }
+        function cerrarGestion() {
+            document.getElementById("gestion").style.display = "none";  // Cierra la página flotante
+        }
+
+        function agregarGrua() {
+            const numGrua = document.getElementById("numGrua").value;
+            const posX = document.getElementById("posX").value;
+            const posY = document.getElementById("posY").value;
+            if (!numGrua || !posX || !posY) {
+                alert("Todos los campos son obligatorios");
+                return;
+            }
+            const gruaId = "grua" + numGrua;
+            database.ref(gruaId).set({
+                estado: "green",  // Estado inicial de la grúa
+                posX: posX,
+                posY: posY
+            }).then(() => {
+                alert("Grúa agregada correctamente");
+                listarGruas();
+            });
+        }
+
+        function listarGruas() {
+            const lista = document.getElementById("listaGruas");
+            lista.innerHTML = "";
+            database.ref().once("value", snapshot => {
+                snapshot.forEach(childSnapshot => {
+                    const grua = childSnapshot.key;
+                    const li = document.createElement("li");
+                    li.textContent = grua;
+                    const btnEliminar = document.createElement("button");
+                    btnEliminar.textContent = "Eliminar";
+                    btnEliminar.onclick = () => eliminarGrua(grua);
+                    li.appendChild(btnEliminar);
+                    lista.appendChild(li);
                 });
+            });
+        }
+
+        function eliminarGrua(gruaId) {
+            database.ref(gruaId).remove().then(() => {
+                alert("Grúa eliminada");
+                listarGruas();
             });
         }
 
@@ -147,13 +194,7 @@
                 document.getElementById("app").style.display = "block";
                 cargarEstados();
             }
-            document.querySelectorAll('.grua').forEach(grua => {
-                grua.onclick = function () {
-                    cambiarEstado(this);
-                };
-            });
         };
     </script>
 </body>
 </html>
-
