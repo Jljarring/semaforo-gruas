@@ -185,22 +185,7 @@
                 });
             });
         }
-document.getElementById('eliminarGrua').addEventListener('click', function() {
-    const gruaId = document.getElementById('gruaId').value;
 
-    database.ref(gruaId).remove()
-        .then(() => {
-            console.log("Grúa eliminada:", gruaId);
-            document.getElementById('modalGrua').style.display = 'none';
-            document.getElementById('gruaId').value = '';
-            document.getElementById('gruaTop').value = '';
-            document.getElementById('gruaLeft').value = '';
-        })
-        .catch((error) => {
-            console.error("Error al eliminar la grúa:", error);
-            alert("Error al eliminar la grúa. Por favor, inténtalo de nuevo.");
-        });
-});
         window.onload = function() {
             if (localStorage.getItem("autenticado") === "true") {
                 document.getElementById("login").style.display = "none";
@@ -233,6 +218,25 @@ document.getElementById('eliminarGrua').addEventListener('click', function() {
                 document.getElementById('gruaLeft').value = '';
             });
         });
+      
+      document.getElementById('eliminarGrua').addEventListener('click', function() {
+    const gruaId = document.getElementById('gruaId').value;
+
+    database.ref(gruaId).remove()
+        .then(() => {
+            console.log("Grúa eliminada:", gruaId);
+            document.getElementById('modalGrua').style.display = 'none';
+            document.getElementById('gruaId').value = '';
+            document.getElementById('gruaTop').value = '';
+            document.getElementById('gruaLeft').value = '';
+        })
+        .catch((error) => {
+            console.error("Error al eliminar la grúa:", error);
+            alert("Error al eliminar la grúa. Por favor, inténtalo de nuevo.");
+        });
+});
+      
+      
 		  </script>
 </body>
 </html>
