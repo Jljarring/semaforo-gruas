@@ -1,17 +1,13 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <link rel="stylesheet" href="styles.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Semáforo de Grúas</title>
     <style>
-
-	body {
-        background-color: #f06d06;
-        color: white;
-
-		
+        body {
+            background-color: #f06d06;
+            color: white;
             text-align: center;
             font-family: Arial, sans-serif;
         }
@@ -60,22 +56,33 @@
             border-radius: 5px;
             z-index: 1000;
         }
+        /* Estilo del modal */
         #modalGrua {
-    background-color: #f06d06 !important; /* Asegura que el fondo sea naranja */
-    color: white !important; /* Asegura que el texto sea blanco */
-    display: none;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    padding: 20px;
-    border: 2px solid #ccc;
-    z-index: 1001;
-    border-radius: 10px; /* Opcional: redondea bordes */
+            background-color: #f06d06;
+            color: white;
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px;
+            border: 2px solid #ccc;
+            z-index: 1001;
+            border-radius: 10px;
+        }
+        /* Estilo del mensaje flotante */
+        #mensajeFlotante {
+            display: none;
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            z-index: 100;
+            pointer-events: none;
         }
     </style>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
 <body>
     <div id="login">
@@ -88,23 +95,34 @@
         <button id="logout" onclick="cerrarSesion()">X</button>
         <h2>Distribución de Grúas</h2>
         <button id="agregarGrua">+</button>
-        <div class="contenedor">
+        <div class="contenedor"></div>
+        <!-- Mensaje flotante para mostrar las coordenadas -->
+        <div id="mensajeFlotante">
+            <p>Top: <span id="topCoord">0</span> px</p>
+            <p>Left: <span id="leftCoord">0</span> px</p>
         </div>
     </div>
 
+    <!-- Modal para agregar o eliminar grúa -->
     <div id="modalGrua">
-        <h2>Agregar/Eliminar Grúa</h2>
-        <label for="gruaId">ID de Grúa:</label>
-        <input type="text" id="gruaId">
-        <label for="gruaTop">Posición Top:</label>
-        <input type="number" id="gruaTop">
-        <label for="gruaLeft">Posición Left:</label>
-        <input type="number" id="gruaLeft">
-        <button id="guardarGrua">Guardar</button>
-        <button id="eliminarGrua">Eliminar</button>
+        <label for="gruaId">ID de la grúa:</label>
+        <input type="text" id="gruaId" placeholder="Ej. grua1" required><br>
+        
+        <label for="gruaTop">Top (deslizar):</label>
+        <input type="range" id="gruaTop" min="0" max="1000" step="1" value="0">
+        <span id="topValue">0</span> px<br>
+        
+        <label for="gruaLeft">Left (deslizar):</label>
+        <input type="range" id="gruaLeft" min="0" max="1000" step="1" value="0">
+        <span id="leftValue">0</span> px<br>
+
+        <button id="guardarGrua">Guardar Grúa</button>
+        <button id="eliminarGrua">Eliminar Grúa</button>
         <button id="cerrarModal">Cerrar</button>
     </div>
 
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <script>
         var firebaseConfig = {
             apiKey: "AIzaSyArPPyaX0NoU2Gkax8bpj5MkWTLMsyZmYQ",
@@ -184,9 +202,42 @@
                         gruaElemento.textContent = gruaId.replace('grua', '');
                         gruaElemento.style.backgroundColor = estado || 'green';
 
-                        gruaElemento.onclick = function () {
-                            cambiarEstado(this);
-                        };
+                        // Mostrar el mensaje flotante con las coordenadas al pasar el puntero
+                        gruaElemento.addEventListener('mouseover', function(event) {
+                            const mensajeFlotante = document.getElementById('mensajeFlotante');
+                            const topCoord = document.getElementById('topCoord');
+                            const leftCoord = document.getElementById('leftCoord');
+
+                            // Actualizar las coordenadas en el mensaje flotante
+                            topCoord.textContent = gruaElemento.style.top;
+                            leftCoord.textContent = gruaElemento.style.left;
+
+                            // Mostrar el mensaje flotante cerca del puntero
+                            mensajeFlotante.style.display = 'block';
+                            mensajeFlotante.style.top = (event.pageY + 10) + 'px';
+                            mensajeFlotante.style.left = (event.pageX + 10) + 'px';
+                        });
+
+                        // Ocultar el mensaje flotante cuando se deja de pasar el puntero
+                        gruaElemento.addEventListener('mouseout', function() {
+                            document.getElementById('mensajeFlotante').style.display = 'none';
+                        });
+
+                        // Cambiar estado con un clic (cambiar entre verde, amarillo y rojo)
+                        gruaElemento.addEventListener('click', function () {
+                            cambiarEstado(gruaElemento);
+                        });
+
+                        // Abrir el modal para editar la grúa con doble clic
+                        let clickCount = 0;
+                        gruaElemento.addEventListener('dblclick', function () {
+                            document.getElementById('gruaId').value = gruaId;
+                            document.getElementById('gruaTop').value = top;
+                            document.getElementById('gruaLeft').value = left;
+                            document.getElementById('topValue').textContent = top;
+                            document.getElementById('leftValue').textContent = left;
+                            document.getElementById('modalGrua').style.display = 'block';
+                        });
 
                         contenedor.appendChild(gruaElemento);
                     }
@@ -210,41 +261,65 @@
             document.getElementById('modalGrua').style.display = 'none';
         });
 
+        // Actualizar el valor de los deslizadores
+        document.getElementById('gruaTop').addEventListener('input', function() {
+            document.getElementById('topValue').textContent = this.value;
+        });
+
+        document.getElementById('gruaLeft').addEventListener('input', function() {
+            document.getElementById('leftValue').textContent = this.value;
+        });
+
         document.getElementById('guardarGrua').addEventListener('click', function() {
             const gruaId = document.getElementById('gruaId').value;
             const gruaTop = parseInt(document.getElementById('gruaTop').value);
             const gruaLeft = parseInt(document.getElementById('gruaLeft').value);
 
-            database.ref(gruaId).set({
-                estado: 'green',
-                top: gruaTop,
-                left: gruaLeft
-            }).then(() => {
-                document.getElementById('modalGrua').style.display = 'none';
-                document.getElementById('gruaId').value = '';
-                document.getElementById('gruaTop').value = '';
-                document.getElementById('gruaLeft').value = '';
+            // Verificar si ya existe una grúa con el mismo ID
+            if (!gruaId || gruaId.trim() === '') {
+                alert('Por favor, ingrese un ID válido para la grúa');
+                return;
+            }
+
+            // Verificar si ya existe la grúa en la base de datos
+            database.ref(gruaId).once('value', snapshot => {
+                if (snapshot.exists()) {
+                    // Si existe, actualizar la grúa
+                    database.ref(gruaId).update({
+                        top: gruaTop,
+                        left: gruaLeft
+                    }).then(() => {
+                        document.getElementById('modalGrua').style.display = 'none';
+                        cargarEstados();
+                    });
+                } else {
+                    // Si no existe, agregarla como una nueva
+                    database.ref(gruaId).set({
+                        estado: 'green',
+                        top: gruaTop,
+                        left: gruaLeft
+                    }).then(() => {
+                        document.getElementById('modalGrua').style.display = 'none';
+                        cargarEstados();
+                    });
+                }
             });
         });
-      
-      document.getElementById('eliminarGrua').addEventListener('click', function() {
-    const gruaId = document.getElementById('gruaId').value;
 
-    database.ref(gruaId).remove()
-        .then(() => {
-            console.log("Grúa eliminada:", gruaId);
-            document.getElementById('modalGrua').style.display = 'none';
-            document.getElementById('gruaId').value = '';
-            document.getElementById('gruaTop').value = '';
-            document.getElementById('gruaLeft').value = '';
-        })
-        .catch((error) => {
-            console.error("Error al eliminar la grúa:", error);
-            alert("Error al eliminar la grúa. Por favor, inténtalo de nuevo.");
+        document.getElementById('eliminarGrua').addEventListener('click', function() {
+            const gruaId = document.getElementById('gruaId').value;
+
+            if (gruaId) {
+                database.ref(gruaId).remove()
+                    .then(() => {
+                        document.getElementById('modalGrua').style.display = 'none';
+                        cargarEstados();
+                    })
+                    .catch((error) => {
+                        console.error("Error al eliminar la grúa:", error);
+                    });
+            }
         });
-});
-      
-      
-		  </script>
+    </script>
 </body>
 </html>
