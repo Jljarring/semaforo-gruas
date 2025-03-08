@@ -1,6 +1,6 @@
 body {
   font-family: system-ui;
-  background: #f06d06;
+  background: #f06d06  !important;
   color: white;
   text-align: center; 
 }
