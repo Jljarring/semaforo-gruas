@@ -15,22 +15,28 @@ const loginForm = document.getElementById('loginForm');
 const errorMessage = document.getElementById('errorMessage');
 
 loginForm.addEventListener('submit', (e) => {
-    console.log('Formulario enviado'); // Verifica si el evento submit se activa
+    console.log('Formulario enviado');
     e.preventDefault();
 
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
 
-    console.log(email, password); // Verifica los valores de email y password
+    console.log('Email ingresado:', email);
+    console.log('Contraseña ingresada:', password);
 
     database.ref('usuarios').once('value', (snapshot) => {
         let usuarioEncontrado = false;
         snapshot.forEach((childSnapshot) => {
             const usuario = childSnapshot.val();
+            const nombreUsuario = childSnapshot.key;
+
+            console.log('Usuario encontrado:', nombreUsuario);
+            console.log('Datos del usuario:', usuario);
+
             if (usuario.email === email && usuario.contrasena === password) {
                 usuarioEncontrado = true;
                 console.log('Inicio de sesión exitoso');
-                localStorage.setItem('usuario', childSnapshot.key);
+                localStorage.setItem('usuario', nombreUsuario);
                 window.location.href = 'index.html';
             }
         });
