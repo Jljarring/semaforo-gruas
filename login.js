@@ -1,5 +1,12 @@
 var firebaseConfig = {
     // ... tu configuración de Firebase ...
+    apiKey: "AIzaSyArPPyaX0NoU2Gkax8bpj5MkWTLMsyZmYQ",
+            authDomain: "estado-de-equipos-rtgs.firebaseapp.com",
+            databaseURL: "https://estado-de-equipos-rtgs-default-rtdb.firebaseio.com",
+            projectId: "estado-de-equipos-rtgs",
+            storageBucket: "estado-de-equipos-rtgs.appspot.com",
+            messagingSenderId: "927929035915",
+            appId: "1:927929035915:web:7c7a5e265d8130e0ac788e"
 };
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
