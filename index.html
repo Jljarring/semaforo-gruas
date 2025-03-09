@@ -1,5 +1,13 @@
 <!DOCTYPE html>
 <html lang="es">
+    <script>
+    const usuario = localStorage.getItem('usuario');
+    console.log('Usuario en index.html:', usuario);
+    if (!usuario) {
+        console.log('Usuario no encontrado, redirigiendo a login.html');
+        window.location.href = 'login.html';
+    }
+</script>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
