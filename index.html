@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Semáforo de Grúas</title>
@@ -74,6 +75,14 @@
 </head>
 <body>
 
+	<div id="app" style="display: none;">
+    <button id="mostrarResumen">Mostrar Resumen</button>
+    <div id="resumenGruas" style="display: none; position: absolute; background-color: white; color: black; border: 1px solid black; padding: 10px;">
+        <canvas id="pastelGruas" width="200" height="200"></canvas>
+        <canvas id="barrasGruas" width="400" height="100"></canvas>
+    </div>
+    </div>
+	
     <div id="login">
         <h2>Iniciar Sesión</h2>
         <input type="text" id="username" placeholder="Usuario">
@@ -118,6 +127,52 @@
                 mostrarApp();
             }
         };
+
+
+	    function actualizarResumen() {
+    const pastelCanvas = document.getElementById('pastelGruas').getContext('2d');
+    const barrasCanvas = document.getElementById('barrasGruas').getContext('2d');
+    let totalRojas = 0, totalAzules = 0, totalVerdes = 0;
+
+    const gruas = document.querySelectorAll('.grua');
+    gruas.forEach(grua => {
+        const color = grua.style.backgroundColor;
+        if (color === 'red') totalRojas++;
+        else if (color === 'blue') totalAzules++;
+        else if (color === 'green') totalVerdes++;
+    });
+
+    // Gráfico de pastel
+    new Chart(pastelCanvas, {
+        type: 'pie',
+        data: {
+            labels: ['Rojas', 'Azules', 'Verdes'],
+            datasets: [{
+                data: [totalRojas, totalAzules, totalVerdes],
+                backgroundColor: ['red', 'blue', 'green']
+            }]
+        }
+    });
+
+    // Gráfico de barras horizontales
+    new Chart(barrasCanvas, {
+        type: 'bar',
+        data: {
+            labels: ['Rojas', 'Azules', 'Verdes'],
+            datasets: [{
+                label: 'Total',
+                data: [totalRojas, totalAzules, totalVerdes],
+                backgroundColor: ['red', 'blue', 'green']
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+}
 
         function iniciarSesion() {
             const username = document.getElementById('username').value;
