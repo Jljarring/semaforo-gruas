@@ -149,7 +149,43 @@
                 ocultarResumenGruas();
             }
         });
+function cargarEstados() {
+    const contenedor = document.querySelector('.contenedor');
+    contenedor.innerHTML = ''; // Limpia el contenedor antes de actualizar
 
+    // Obtener la imagen del plano desde Firebase
+    database.ref('imagenFondo').once('value', snapshot => {
+        const urlImagenFondo = snapshot.val();
+        if (urlImagenFondo) {
+            let imagenPlano = document.getElementById('imagenPlano');
+            if (!imagenPlano) {
+                imagenPlano = document.createElement('img');
+                imagenPlano.id = 'imagenPlano';
+                imagenPlano.classList.add('plano');
+                imagenPlano.alt = 'Plano de grúas';
+                contenedor.appendChild(imagenPlano);
+            }
+            imagenPlano.src = urlImagenFondo;
+        }
+    });
+
+    // Cargar grúas desde Firebase
+    database.ref('/').on('child_added', snapshot => {
+        const gruaId = snapshot.key;
+        if (gruaId.startsWith('grua')) {
+            const { estado, top, left, numero } = snapshot.val();
+
+            const gruaElemento = document.createElement('div');
+            gruaElemento.id = gruaId;
+            gruaElemento.classList.add('grua');
+            gruaElemento.style.top = top + 'px';
+            gruaElemento.style.left = left + 'px';
+            gruaElemento.textContent = numero || gruaId.replace('grua', '');
+            gruaElemento.style.backgroundColor = estado || 'green';
+            contenedor.appendChild(gruaElemento);
+        }
+    });
+}
         function actualizarResumen() {
             const pastelCanvas = document.getElementById('pastelGruas').getContext('2d');
             const barrasCanvas = document.getElementById('barrasGruas').getContext('2d');
