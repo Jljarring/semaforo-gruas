@@ -178,15 +178,15 @@
         };
 
 
-	        let miGrafico; // Variable para almacenar la instancia del gráfico
-        const modalEstadisticas = document.getElementById('modalEstadisticas'); // Obtener el modal una sola vez
+        let miGrafico;
+        const modalEstadisticas = document.getElementById('modalEstadisticas');
 
         document.getElementById('mostrarEstadisticas').addEventListener('click', () => {
             mostrarEstadisticas();
         });
 
         document.getElementById('cerrarModal').addEventListener('click', () => {
-            modalEstadisticas.style.display = 'none'; // Usar la variable modalEstadisticas
+            modalEstadisticas.style.display = 'none';
         });
 
         function mostrarEstadisticas() {
