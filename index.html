@@ -32,7 +32,7 @@
             font-weight: bold;
             border-radius: 10px;
             cursor: grab;
-            user-select: none;
+		  user-select: none; /* Agregar esta línea */
         }
         .boton-flotante {
             position: fixed;
@@ -70,59 +70,9 @@
             font-size: 16px;
             color: white;
         }
-        .boton-flotante-estadisticas {
-            position: fixed;
-            bottom: 20px;
-            right: 80px;
-            width: 60px;
-            height: 60px;
-            font-size: 24px;
-            border: none;
-            border-radius: 50%;
-            cursor: pointer;
-            background-color: lightblue;
-            color: black;
-        }
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.4);
-        }
-        .modal-contenido {
-            background-color: #fefefe;
-            margin: 15% auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-            max-width: 600px;
-        }
-        .cerrar-modal {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-        }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-
-    <button class="boton-flotante-estadisticas" id="mostrarEstadisticas"></button>
-
-    <div id="modalEstadisticas" class="modal">
-        <div class="modal-contenido">
-            <span class="cerrar-modal" id="cerrarModal">&times;</span>
-            <h2>Estadísticas de Grúas</h2>
-            <canvas id="graficoPastel"></canvas>
-        </div>
-    </div>
 
     <div id="login">
         <h2>Iniciar Sesión</h2>
@@ -149,6 +99,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
     <script>
+        // Configuración de Firebase
         var firebaseConfig = {
             apiKey: "AIzaSyArPPyaX0NoU2Gkax8bpj5MkWTLMsyZmYQ",
             authDomain: "estado-de-equipos-rtgs.firebaseapp.com",
@@ -161,55 +112,17 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
+        // Verificar si hay sesión activa
         window.onload = function() {
             if (localStorage.getItem('usuario')) {
                 mostrarApp();
             }
         };
 
-        let miGrafico;
-        const modalEstadisticas = document.getElementById('modalEstadisticas');
-
-        document.getElementById('mostrarEstadisticas').addEventListener('click', () => {
-            mostrarEstadisticas();
-        });
-
-        document.getElementById('cerrarModal').addEventListener('click', () => {
-            modalEstadisticas.style.display = 'none';
-        });
-
-        function mostrarEstadisticas() {
-            const estados = { green: 0, red: 0, blue: 0 };
-            const gruas = document.querySelectorAll('.grua');
-            gruas.forEach(grua => {
-                const color = grua.style.backgroundColor;
-                if (estados[color] !== undefined) {
-                    estados[color]++;
-                }
-            });
-
-            const ctx = document.getElementById('graficoPastel').getContext('2d');
-            if (miGrafico) {
-                miGrafico.destroy();
-            }
-
-            miGrafico = new Chart(ctx, {
-                type: 'pie',
-                data: {
-                    labels: ['Operativo (Verde)', 'Mantenimiento (Rojo)', 'Standby (Azul)'],
-                    datasets: [{
-                        data: [estados.green, estados.red, estados.blue],
-                        backgroundColor: ['green', 'red', 'blue']
-                    }]
-                }
-            });
-
-            modalEstadisticas.style.display = 'block';
-        }
-
         function iniciarSesion() {
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
+
             database.ref('usuarios').once('value')
                 .then(snapshot => {
                     if (snapshot.exists()) {
@@ -230,6 +143,7 @@
         function mostrarApp() {
             document.getElementById('login').style.display = 'none';
             document.getElementById('app').style.display = 'block';
+            document.getElementById('usuarioInfo').style.display = 'flex';
             document.getElementById('usuarioNombre').textContent = localStorage.getItem('usuario');
             cargarEstados();
         }
@@ -238,6 +152,25 @@
             localStorage.removeItem('usuario');
             document.getElementById('login').style.display = 'block';
             document.getElementById('app').style.display = 'none';
+        }
+
+        function abrirVentanaEmergente() {
+            const numeroGrua = prompt("Ingrese el número de la grúa:");
+            if (numeroGrua) {
+                agregarGrua(numeroGrua);
+            } else {
+                alert("El número de grúa es obligatorio.");
+            }
+        }
+
+        function agregarGrua(numeroGrua) {
+            const nuevoId = 'grua' + Date.now();
+            database.ref(nuevoId).set({
+                numero: numeroGrua,
+                top: 50,
+                left: 50,
+                estado: 'green'
+            });
         }
 
         function cargarEstados() {
@@ -267,51 +200,119 @@
                 }
             };
 
-            contenedor.addEventListener('click', function(event) {
-                if (event.target.classList.contains('grua')) {
-                    event.target.classList.toggle('seleccionada');
+            contenedor.addEventListener('click', (e) => {
+                if (e.target.classList.contains('grua')) {
+                    const gruas = document.querySelectorAll('.grua');
+                    gruas.forEach(grua => grua.classList.remove('seleccionada'));
+                    e.target.classList.add('seleccionada');
                 }
             });
 
-            database.ref('gruas').on('child_added', function(snapshot) {
-                const data = snapshot.val();
-                const grua = document.createElement('div');
-                grua.classList.add('grua');
-                grua.style.left = data.x + 'px';
-                grua.style.top = data.y + 'px';
-                grua.style.backgroundColor = data.estado;
-                grua.style.zIndex = '10';
-                grua.id = snapshot.key;
-                grua.textContent = snapshot.key.substring(0, 2).toUpperCase();
-                contenedor.appendChild(grua);
+		
 
-                grua.addEventListener('mousedown', function(e) {
-                    grua.classList.add('mover');
-                    const offsetX = e.clientX - grua.offsetLeft;
-                    const offsetY = e.clientY - grua.offsetTop;
-
-                    function mover(e) {
-                        grua.style.left = e.clientX - offsetX + 'px';
-                        grua.style.top = e.clientY - offsetY + 'px';
+            database.ref('/').on('child_changed', snapshot => {
+                const gruaId = snapshot.key;
+                if (gruaId.startsWith('grua')) {
+                    const { estado, top, left } = snapshot.val();
+                    const gruaElemento = document.getElementById(gruaId);
+                    if (gruaElemento) {
+                        gruaElemento.style.top = top + 'px';
+                        gruaElemento.style.left = left + 'px';
+                        gruaElemento.style.backgroundColor = estado || 'green';
                     }
+                }
+            });
 
-                    function soltar() {
-                        grua.classList.remove('mover');
-                        grua.removeEventListener('mousemove', mover);
-                        grua.removeEventListener('mouseup', soltar);
+	    database.ref('/').on('child_added', snapshot => {
+                const gruaId = snapshot.key;
+                if (gruaId.startsWith('grua')) {
+                    const { estado, top, left, numero } = snapshot.val();
 
-                        const nuevaPos = {
-                            x: parseInt(grua.style.left),
-                            y: parseInt(grua.style.top)
-                        };
-                        database.ref('gruas/' + snapshot.key).update(nuevaPos);
-                    }
+                    const gruaElemento = document.createElement('div');
+                    gruaElemento.id = gruaId;
+                    gruaElemento.classList.add('grua');
+                    gruaElemento.style.top = top + 'px';
+                    gruaElemento.style.left = left + 'px';
+                    gruaElemento.textContent = numero || gruaId.replace('grua', '');
+                    gruaElemento.style.backgroundColor = estado || 'green';
 
-                    grua.addEventListener('mousemove', mover);
-                    grua.addEventListener('mouseup', soltar);
-                });
+                    let offsetX, offsetY, moviendo = false;
+                    let toqueCount = 0;
+
+
+
+			gruaElemento.addEventListener('mousedown', (e) => {
+    e.preventDefault(); // Prevenir la selección de texto
+
+    moviendo = true;
+    offsetX = e.clientX - gruaElemento.offsetLeft;
+    offsetY = e.clientY - gruaElemento.offsetTop;
+    gruaElemento.style.cursor = 'grabbing';
+});
+                    document.addEventListener('mousemove', (e) => {
+                        if (moviendo) {
+                            gruaElemento.style.left = (e.clientX - offsetX) + 'px';
+                            gruaElemento.style.top = (e.clientY - offsetY) + 'px';
+                            database.ref(gruaId).update({
+                                top: parseInt(gruaElemento.style.top),
+                                left: parseInt(gruaElemento.style.left)
+                            });
+                        }
+                    });
+
+                    document.addEventListener('mouseup', () => {
+                        if (moviendo) {
+                            moviendo = false;
+                            gruaElemento.style.cursor = 'grab';
+                        }
+                    });
+
+                    gruaElemento.addEventListener('touchstart', (e) => {
+                        toqueCount++;
+                        if (toqueCount === 3) {
+                            const colores = ['green', 'blue', 'red'];
+                            const colorActual = gruaElemento.style.backgroundColor;
+                            const nuevoColor = colores[(colores.indexOf(colorActual) + 1) % colores.length];
+                            gruaElemento.style.backgroundColor = nuevoColor;
+                            database.ref(gruaId).update({ estado: nuevoColor });
+                            toqueCount = 0;
+                        }
+
+                        moviendo = true;
+                        offsetX = e.touches[0].clientX - gruaElemento.offsetLeft;
+                        offsetY = e.touches[0].clientY - gruaElemento.offsetTop;
+                    });
+
+                    document.addEventListener('touchmove', (e) => {
+                        if (moviendo) {
+                            const touch = e.touches[0];
+                            gruaElemento.style.left = (touch.clientX - offsetX) + 'px';
+                            gruaElemento.style.top = (touch.clientY - offsetY) + 'px';
+                            database.ref(gruaId).update({
+                                top: parseInt(gruaElemento.style.top),
+                                left: parseInt(gruaElemento.style.left)
+                            });
+                        }
+                    });
+
+                    document.addEventListener('touchend', () => {
+                        if (moviendo) {
+                            moviendo = false;
+                        }
+                    });
+
+                    gruaElemento.addEventListener('dblclick', () => {
+                        const colores = ['green', 'blue', 'red'];
+                        const nuevoEstado = colores[(colores.indexOf(gruaElemento.style.backgroundColor) + 1) % colores.length];
+                        gruaElemento.style.backgroundColor = nuevoEstado;
+                        database.ref(gruaId).update({ estado: nuevoEstado });
+                    });
+
+                    contenedor.appendChild(gruaElemento);
+                }
             });
         }
     </script>
+
 </body>
 </html>
