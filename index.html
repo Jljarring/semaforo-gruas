@@ -294,6 +294,89 @@
                     }
                 }
             });
+          
+          
+              // Agregar grúa con eventos para arrastrar y doble clic
+    database.ref('/').on('child_added', snapshot => {
+        const gruaId = snapshot.key;
+        if (gruaId.startsWith('grua')) {
+            const { estado, top, left, numero } = snapshot.val();
+
+            const gruaElemento = document.createElement('div');
+            gruaElemento.id = gruaId;
+            gruaElemento.classList.add('grua');
+            gruaElemento.style.top = top + 'px';
+            gruaElemento.style.left = left + 'px';
+            gruaElemento.textContent = numero || gruaId.replace('grua', '');
+            gruaElemento.style.backgroundColor = estado || 'green';
+
+            let offsetX, offsetY, moviendo = false;
+
+            // Manejo de eventos para arrastrar en PC
+            gruaElemento.addEventListener('mousedown', (e) => {
+                moviendo = true;
+                offsetX = e.clientX - gruaElemento.offsetLeft;
+                offsetY = e.clientY - gruaElemento.offsetTop;
+                gruaElemento.style.cursor = 'grabbing';
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (moviendo) {
+                    gruaElemento.style.left = (e.clientX - offsetX) + 'px';
+                    gruaElemento.style.top = (e.clientY - offsetY) + 'px';
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                if (moviendo) {
+                    moviendo = false;
+                    gruaElemento.style.cursor = 'grab';
+                    database.ref(gruaId).update({
+                        top: parseInt(gruaElemento.style.top),
+                        left: parseInt(gruaElemento.style.left)
+                    });
+                }
+            });
+
+            // Manejo de eventos para arrastrar en dispositivos táctiles
+            gruaElemento.addEventListener('touchstart', (e) => {
+                moviendo = true;
+                const touch = e.touches[0];
+                offsetX = touch.clientX - gruaElemento.offsetLeft;
+                offsetY = touch.clientY - gruaElemento.offsetTop;
+            });
+
+            document.addEventListener('touchmove', (e) => {
+                if (moviendo) {
+                    const touch = e.touches[0];
+                    gruaElemento.style.left = (touch.clientX - offsetX) + 'px';
+                    gruaElemento.style.top = (touch.clientY - offsetY) + 'px';
+                }
+            });
+
+            document.addEventListener('touchend', () => {
+                if (moviendo) {
+                    moviendo = false;
+                    database.ref(gruaId).update({
+                        top: parseInt(gruaElemento.style.top),
+                        left: parseInt(gruaElemento.style.left)
+                    });
+                }
+            });
+
+            // Cambiar color con doble clic
+            gruaElemento.addEventListener('dblclick', () => {
+                const colores = ['green', 'blue', 'red'];
+                const nuevoEstado = colores[(colores.indexOf(gruaElemento.style.backgroundColor) + 1) % colores.length];
+                gruaElemento.style.backgroundColor = nuevoEstado;
+                database.ref(gruaId).update({ estado: nuevoEstado });
+            });
+
+            contenedor.appendChild(gruaElemento);
+        }
+    });
+          
+          
         }
     </script>
 
