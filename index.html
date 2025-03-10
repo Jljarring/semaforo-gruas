@@ -73,7 +73,6 @@
 </head>
 <body>
 
-    <!-- Formulario de inicio de sesión -->
     <div id="login">
         <h2>Iniciar Sesión</h2>
         <input type="text" id="username" placeholder="Usuario">
@@ -82,7 +81,6 @@
         <p id="errorMensaje" style="color: red;"></p>
     </div>
 
-    <!-- Aplicación principal -->
     <div id="app" style="display: none;">
         <div class="usuario-info" id="usuarioInfo" style="display: none;">
             <span id="usuarioNombre"></span>
@@ -96,7 +94,6 @@
         </div>
     </div>
 
-    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
@@ -125,11 +122,11 @@
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
 
-            database.ref('usuarios').once('value') 
+            database.ref('usuarios').once('value')
                 .then(snapshot => {
                     if (snapshot.exists()) {
                         const userData = snapshot.val();
-                        if (userData.usuario === username && userData.contrasena === password) { 
+                        if (userData.usuario === username && userData.contrasena === password) {
                             localStorage.setItem('usuario', username);
                             mostrarApp();
                         } else {
@@ -210,7 +207,8 @@
             };
 
             // Agregar clase 'seleccionada' al hacer clic en una grúa
-            contenedor.addEventListener('click', (e) => {
+         		
+			contenedor.addEventListener('click', (e) => {
                 if (e.target.classList.contains('grua')) {
                     const gruas = document.querySelectorAll('.grua');
                     gruas.forEach(grua => grua.classList.remove('seleccionada'));
@@ -247,6 +245,7 @@
                     gruaElemento.style.backgroundColor = estado || 'green';
 
                     let offsetX, offsetY, moviendo = false;
+                    let ultimoClic = 0; // Inicializar la variable ultimoClic
                     let toqueCount = 0; // Variable para contar los toques
 
                     // Manejo de eventos para arrastrar en PC
@@ -277,21 +276,20 @@
                         gruaElemento.style.cursor = 'grab';
                     });
 
-            // Detectar doble clic para cambiar el color
-            gruaElemento.addEventListener('click', (e) => {
-                const tiempoActual = new Date().getTime();
-                if (tiempoActual - ultimoClic <= 300) { // 300 ms para considerar un doble clic
-                    const colores = ['green', 'blue', 'red']; // Los colores disponibles
-                    const colorActual = gruaElemento.style.backgroundColor;
-                    const nuevoColor = colores[(colores.indexOf(colorActual) + 1) % colores.length];
-                    gruaElemento.style.backgroundColor = nuevoColor;
+                    // Detectar doble clic para cambiar el color
+                    gruaElemento.addEventListener('click', (e) => {
+                        const tiempoActual = new Date().getTime();
+                        if (tiempoActual - ultimoClic <= 300) { // 300 ms para considerar un doble clic
+                            const colores = ['green', 'blue', 'red']; // Los colores disponibles
+                            const colorActual = gruaElemento.style.backgroundColor;
+                            const nuevoColor = colores[(colores.indexOf(colorActual) + 1) % colores.length];
+                            gruaElemento.style.backgroundColor = nuevoColor;
 
-                    // Actualizar el estado en Firebase
-                    database.ref(gruaId).update({ estado: nuevoColor });
-                }
-                ultimoClic = tiempoActual;
-            });
-                    
+                            // Actualizar el estado en Firebase
+                            database.ref(gruaId).update({ estado: nuevoColor });
+                        }
+                        ultimoClic = tiempoActual;
+                    });
 
                     // Manejo de eventos para arrastrar en dispositivos táctiles
                     gruaElemento.addEventListener('touchstart', (e) => {
