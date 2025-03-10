@@ -130,6 +130,53 @@
         };
 
 
+// Función para mostrar el resumen de grúas
+function mostrarResumenGruas() {
+    const resumenDiv = document.getElementById('resumenGruas');
+    resumenDiv.style.display = 'block';
+    actualizarResumen();
+}
+
+// Función para ocultar el resumen de grúas
+function ocultarResumenGruas() {
+    const resumenDiv = document.getElementById('resumenGruas');
+    resumenDiv.style.display = 'none';
+}
+
+// Función para actualizar el contenido del resumen
+function actualizarResumen() {
+    const resumenDiv = document.getElementById('resumenGruas');
+    let totalRojas = 0, totalAzules = 0, totalVerdes = 0;
+
+    // Contar el número de grúas por color
+    const gruas = document.querySelectorAll('.grua');
+    gruas.forEach(grua => {
+        const color = grua.style.backgroundColor;
+        if (color === 'red') totalRojas++;
+        else if (color === 'blue') totalAzules++;
+        else if (color === 'green') totalVerdes++;
+    });
+
+    // Actualizar el contenido del resumen
+    resumenDiv.innerHTML = `
+        <p>Rojas (Mantenimiento): ${totalRojas}</p>
+        <p>Azules (Stand By): ${totalAzules}</p>
+        <p>Verdes (Operativas): ${totalVerdes}</p>
+    `;
+}
+
+// Evento para mostrar el resumen al hacer clic en el botón
+document.getElementById('mostrarResumen').addEventListener('click', mostrarResumenGruas);
+
+// Evento para ocultar el resumen al hacer clic fuera de él
+document.addEventListener('click', (e) => {
+    if (e.target.id !== 'mostrarResumen' && e.target.id !== 'resumenGruas' && !e.target.closest('#resumenGruas')) {
+        ocultarResumenGruas();
+    }
+});
+
+	    
+
 	    function actualizarResumen() {
     const pastelCanvas = document.getElementById('pastelGruas').getContext('2d');
     const barrasCanvas = document.getElementById('barrasGruas').getContext('2d');
