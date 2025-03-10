@@ -32,6 +32,7 @@
             font-weight: bold;
             border-radius: 10px;
             cursor: grab;
+		  user-select: none; /* Agregar esta línea */
         }
         .boton-flotante {
             position: fixed;
@@ -139,23 +140,20 @@
                 .catch(error => console.error("Error al acceder a Firebase:", error));
         }
 
-        // Función para mostrar la aplicación después del inicio de sesión
         function mostrarApp() {
             document.getElementById('login').style.display = 'none';
             document.getElementById('app').style.display = 'block';
-            document.getElementById('usuarioInfo').style.display = 'flex'; // Mostrar el usuario y botón de cerrar sesión
+            document.getElementById('usuarioInfo').style.display = 'flex';
             document.getElementById('usuarioNombre').textContent = localStorage.getItem('usuario');
             cargarEstados();
         }
 
-        // Función para cerrar sesión
         function cerrarSesion() {
             localStorage.removeItem('usuario');
             document.getElementById('login').style.display = 'block';
             document.getElementById('app').style.display = 'none';
         }
 
-        // Función para abrir la ventana emergente
         function abrirVentanaEmergente() {
             const numeroGrua = prompt("Ingrese el número de la grúa:");
             if (numeroGrua) {
@@ -165,18 +163,16 @@
             }
         }
 
-        // Función para agregar una grúa
         function agregarGrua(numeroGrua) {
-            const nuevoId = 'grua' + Date.now(); // Generar un ID único
+            const nuevoId = 'grua' + Date.now();
             database.ref(nuevoId).set({
-                numero: numeroGrua, // Almacenar el número de grúa
-                top: 50, // Posición inicial
-                left: 50, // Posición inicial
-                estado: 'green' // Estado inicial
+                numero: numeroGrua,
+                top: 50,
+                left: 50,
+                estado: 'green'
             });
         }
 
-        // Cargar estado de las grúas
         function cargarEstados() {
             const contenedor = document.querySelector('.contenedor');
             contenedor.innerHTML = '';
@@ -192,23 +188,19 @@
                 }
             });
 
-            // Agregar grúa
             document.getElementById('agregarGrua').onclick = function() {
-                abrirVentanaEmergente(); // Abrir la ventana emergente para ingresar número de grúa
+                abrirVentanaEmergente();
             };
 
-            // Eliminar grúa
             document.getElementById('eliminarGrua').onclick = function() {
-                const gruaSeleccionada = document.querySelector('.grua.seleccionada'); // Obtener la grúa seleccionada
+                const gruaSeleccionada = document.querySelector('.grua.seleccionada');
                 if (gruaSeleccionada) {
-                    database.ref(gruaSeleccionada.id).remove(); // Eliminar de Firebase
-                    gruaSeleccionada.remove(); // Eliminar del DOM
+                    database.ref(gruaSeleccionada.id).remove();
+                    gruaSeleccionada.remove();
                 }
             };
 
-            // Agregar clase 'seleccionada' al hacer clic en una grúa
-         		
-			contenedor.addEventListener('click', (e) => {
+            contenedor.addEventListener('click', (e) => {
                 if (e.target.classList.contains('grua')) {
                     const gruas = document.querySelectorAll('.grua');
                     gruas.forEach(grua => grua.classList.remove('seleccionada'));
@@ -216,7 +208,8 @@
                 }
             });
 
-            // Escuchar solo los cambios en los hijos (grúas)
+		
+
             database.ref('/').on('child_changed', snapshot => {
                 const gruaId = snapshot.key;
                 if (gruaId.startsWith('grua')) {
@@ -230,8 +223,7 @@
                 }
             });
 
-            // Escuchar solo los hijos agregados (nuevas grúas)
-            database.ref('/').on('child_added', snapshot => {
+	    database.ref('/').on('child_added', snapshot => {
                 const gruaId = snapshot.key;
                 if (gruaId.startsWith('grua')) {
                     const { estado, top, left, numero } = snapshot.val();
@@ -241,74 +233,51 @@
                     gruaElemento.classList.add('grua');
                     gruaElemento.style.top = top + 'px';
                     gruaElemento.style.left = left + 'px';
-                    gruaElemento.textContent = numero || gruaId.replace('grua', ''); // Mostrar el número de la grúa
+                    gruaElemento.textContent = numero || gruaId.replace('grua', '');
                     gruaElemento.style.backgroundColor = estado || 'green';
 
                     let offsetX, offsetY, moviendo = false;
-                    let ultimoClic = 0; // Inicializar la variable ultimoClic
-                    let toqueCount = 0; // Variable para contar los toques
+                    let toqueCount = 0;
 
-                    // Manejo de eventos para arrastrar en PC
-                    gruaElemento.addEventListener('mousedown', (e) => {
-                        moviendo = true;
-                        offsetX = e.clientX - gruaElemento.offsetLeft;
-                        offsetY = e.clientY - gruaElemento.offsetTop;
-                        gruaElemento.style.cursor = 'grabbing';
-                    });
 
+
+			gruaElemento.addEventListener('mousedown', (e) => {
+    e.preventDefault(); // Prevenir la selección de texto
+
+    moviendo = true;
+    offsetX = e.clientX - gruaElemento.offsetLeft;
+    offsetY = e.clientY - gruaElemento.offsetTop;
+    gruaElemento.style.cursor = 'grabbing';
+});
                     document.addEventListener('mousemove', (e) => {
                         if (moviendo) {
-                            gruaElemento.style.left = e.clientX - offsetX + 'px';
-                            gruaElemento.style.top = e.clientY - offsetY + 'px';
-
-                            // Actualizar la posición de la grúa en Firebase
-                            const posX = e.clientX - offsetX;
-                            const posY = e.clientY - offsetY;
+                            gruaElemento.style.left = (e.clientX - offsetX) + 'px';
+                            gruaElemento.style.top = (e.clientY - offsetY) + 'px';
                             database.ref(gruaId).update({
-                                top: posY,
-                                left: posX
+                                top: parseInt(gruaElemento.style.top),
+                                left: parseInt(gruaElemento.style.left)
                             });
                         }
                     });
 
                     document.addEventListener('mouseup', () => {
-                        moviendo = false;
-                        gruaElemento.style.cursor = 'grab';
-                    });
-
-                    // Detectar doble clic para cambiar el color
-                    gruaElemento.addEventListener('click', (e) => {
-                        const tiempoActual = new Date().getTime();
-                        if (tiempoActual - ultimoClic <= 300) { // 300 ms para considerar un doble clic
-                            const colores = ['green', 'blue', 'red']; // Los colores disponibles
-                            const colorActual = gruaElemento.style.backgroundColor;
-                            const nuevoColor = colores[(colores.indexOf(colorActual) + 1) % colores.length];
-                            gruaElemento.style.backgroundColor = nuevoColor;
-
-                            // Actualizar el estado en Firebase
-                            database.ref(gruaId).update({ estado: nuevoColor });
+                        if (moviendo) {
+                            moviendo = false;
+                            gruaElemento.style.cursor = 'grab';
                         }
-                        ultimoClic = tiempoActual;
                     });
 
-                    // Manejo de eventos para arrastrar en dispositivos táctiles
                     gruaElemento.addEventListener('touchstart', (e) => {
                         toqueCount++;
                         if (toqueCount === 3) {
-                            // Cambiar el color cuando el usuario toca tres veces
-                            const colores = ['green', 'blue', 'red']; // Los colores disponibles
+                            const colores = ['green', 'blue', 'red'];
                             const colorActual = gruaElemento.style.backgroundColor;
                             const nuevoColor = colores[(colores.indexOf(colorActual) + 1) % colores.length];
                             gruaElemento.style.backgroundColor = nuevoColor;
-
-                            // Actualizar el estado en Firebase
                             database.ref(gruaId).update({ estado: nuevoColor });
-
-                            // Resetear el contador de toques después de que se cambie el color
                             toqueCount = 0;
                         }
 
-                        // Iniciar el movimiento
                         moviendo = true;
                         offsetX = e.touches[0].clientX - gruaElemento.offsetLeft;
                         offsetY = e.touches[0].clientY - gruaElemento.offsetTop;
@@ -316,21 +285,27 @@
 
                     document.addEventListener('touchmove', (e) => {
                         if (moviendo) {
-                            gruaElemento.style.left = e.touches[0].clientX - offsetX + 'px';
-                            gruaElemento.style.top = e.touches[0].clientY - offsetY + 'px';
-
-                            // Actualizar la posición de la grúa en Firebase
-                            const posX = e.touches[0].clientX - offsetX;
-                            const posY = e.touches[0].clientY - offsetY;
+                            const touch = e.touches[0];
+                            gruaElemento.style.left = (touch.clientX - offsetX) + 'px';
+                            gruaElemento.style.top = (touch.clientY - offsetY) + 'px';
                             database.ref(gruaId).update({
-                                top: posY,
-                                left: posX
+                                top: parseInt(gruaElemento.style.top),
+                                left: parseInt(gruaElemento.style.left)
                             });
                         }
                     });
 
                     document.addEventListener('touchend', () => {
-                        moviendo = false;
+                        if (moviendo) {
+                            moviendo = false;
+                        }
+                    });
+
+                    gruaElemento.addEventListener('dblclick', () => {
+                        const colores = ['green', 'blue', 'red'];
+                        const nuevoEstado = colores[(colores.indexOf(gruaElemento.style.backgroundColor) + 1) % colores.length];
+                        gruaElemento.style.backgroundColor = nuevoEstado;
+                        database.ref(gruaId).update({ estado: nuevoEstado });
                     });
 
                     contenedor.appendChild(gruaElemento);
@@ -338,5 +313,6 @@
             });
         }
     </script>
+
 </body>
 </html>
