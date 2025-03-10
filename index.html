@@ -217,30 +217,7 @@
             modalEstadisticas.style.display = 'block'; // Usar la variable modalEstadisticas
         }
 
-        function mostrarEstadisticas() {
-            const estados = { green: 0, red: 0, blue: 0 };
-            const gruas = document.querySelectorAll('.grua');
-            gruas.forEach(grua => {
-                const color = grua.style.backgroundColor;
-                if (estados[color] !== undefined) {
-                    estados[color]++;
-                }
-            });
-
-            const ctx = document.getElementById('graficoPastel').getContext('2d');
-            new Chart(ctx, {
-                type: 'pie',
-                data: {
-                    labels: ['Operativo (Verde)', 'Mantenimiento (Rojo)', 'Standby (Azul)'],
-                    datasets: [{
-                        data: [estados.green, estados.red, estados.blue],
-                        backgroundColor: ['green', 'red', 'blue']
-                    }]
-                }
-            });
-
-            document.getElementById('modalEstadisticas').style.display = 'block';
-        }
+        
         function iniciarSesion() {
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
