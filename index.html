@@ -32,6 +32,7 @@
             font-weight: bold;
             border-radius: 10px;
             cursor: grab;
+	    user-select: none; /* Agregar esta línea */
         }
         .boton-flotante {
             position: fixed;
@@ -234,9 +235,10 @@
 
                     let offsetX, offsetY, moviendo = false;
                     let toqueCount = 0;
-
-                    gruaElemento.addEventListener('mousedown', (e) => {
-                        moviendo = true;
+ 		    // Agregar este evento para prevenir la selección
+    		     gruaElemento.addEventListener('mousedown', (e) => {
+        		e.preventDefault();
+    			moviendo = true;
                         offsetX = e.clientX - gruaElemento.offsetLeft;
                         offsetY = e.clientY - gruaElemento.offsetTop;
                         gruaElemento.style.cursor = 'grabbing';
