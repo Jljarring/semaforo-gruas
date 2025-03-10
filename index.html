@@ -114,7 +114,8 @@
 </head>
 <body>
 
-	<button class="boton-flotante-estadisticas" id="mostrarEstadisticas"></button>
+	
+    <button class="boton-flotante-estadisticas" id="mostrarEstadisticas"></button>
 
     <div id="modalEstadisticas" class="modal">
         <div class="modal-contenido">
@@ -123,6 +124,8 @@
             <canvas id="graficoPastel"></canvas>
         </div>
     </div>
+
+
 
     <div id="login">
         <h2>Iniciar Sesión</h2>
@@ -172,7 +175,48 @@
         };
 
 
-	           document.getElementById('mostrarEstadisticas').addEventListener('click', () => {
+	        let miGrafico; // Variable para almacenar la instancia del gráfico
+
+        document.getElementById('mostrarEstadisticas').addEventListener('click', () => {
+            mostrarEstadisticas();
+        });
+
+        document.getElementById('cerrarModal').addEventListener('click', () => {
+            document.getElementById('modalEstadisticas').style.display = 'none';
+        });
+
+        function mostrarEstadisticas() {
+            const estados = { green: 0, red: 0, blue: 0 };
+            const gruas = document.querySelectorAll('.grua');
+            gruas.forEach(grua => {
+                const color = grua.style.backgroundColor;
+                if (estados[color] !== undefined) {
+                    estados[color]++;
+                }
+            });
+
+            const ctx = document.getElementById('graficoPastel').getContext('2d');
+
+            // Destruir el gráfico anterior si existe
+            if (miGrafico) {
+                miGrafico.destroy();
+            }
+
+            miGrafico = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Operativo (Verde)', 'Mantenimiento (Rojo)', 'Standby (Azul)'],
+                    datasets: [{
+                        data: [estados.green, estados.red, estados.blue],
+                        backgroundColor: ['green', 'red', 'blue']
+                    }]
+                }
+            });
+
+            document.getElementById('modalEstadisticas').style.display = 'block';
+         }
+	    
+	document.getElementById('mostrarEstadisticas').addEventListener('click', () => {
             mostrarEstadisticas();
         });
 
