@@ -346,6 +346,7 @@
                             gruaElemento.style.backgroundColor = nuevoColor;
                             database.ref(gruaId).update({ estado: nuevoColor });
                             toqueCount = 0;
+			   actualizarResumen(); // Agregar esta línea
                         }
 
                         moviendo = true;
@@ -376,6 +377,8 @@
                         const nuevoEstado = colores[(colores.indexOf(gruaElemento.style.backgroundColor) + 1) % colores.length];
                         gruaElemento.style.backgroundColor = nuevoEstado;
                         database.ref(gruaId).update({ estado: nuevoEstado });
+			actualizarResumen(); // Agregar esta línea
+
                     });
 
                     contenedor.appendChild(gruaElemento);
