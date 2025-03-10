@@ -10,25 +10,30 @@
             color: white;
             text-align: center;
             font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
         }
         .contenedor {
             position: relative;
             display: inline-block;
+            width: 100%;
+            max-width: 1000px;
         }
         .plano {
             width: 100%;
             max-width: 1000px;
+            height: auto;
         }
         .grua {
             position: absolute;
-            width: 50px;
-            height: 45px;
+            width: 10vw;
+            height: 9vw;
             background-color: green;
             color: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
+            font-size: 2vw;
             font-weight: bold;
             border-radius: 10px;
             cursor: grab;
@@ -42,9 +47,9 @@
             gap: 10px;
         }
         .boton-flotante button {
-            width: 50px;
-            height: 50px;
-            font-size: 24px;
+            width: 15vw;
+            height: 15vw;
+            font-size: 4vw;
             border: none;
             border-radius: 50%;
             cursor: pointer;
@@ -53,9 +58,9 @@
         }
         .usuario-info {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            font-size: 16px;
+            top: 5%;
+            right: 5%;
+            font-size: 4vw;
             color: white;
             display: flex;
             align-items: center;
@@ -68,6 +73,23 @@
             padding: 5px 10px;
             font-size: 16px;
             color: white;
+        }
+
+        /* Adaptación para pantallas pequeñas */
+        @media (max-width: 768px) {
+            .grua {
+                width: 20vw;
+                height: 18vw;
+                font-size: 5vw;
+            }
+            .boton-flotante button {
+                width: 25vw;
+                height: 25vw;
+                font-size: 6vw;
+            }
+            .usuario-info {
+                font-size: 5vw;
+            }
         }
     </style>
 </head>
