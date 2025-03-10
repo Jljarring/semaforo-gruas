@@ -275,41 +275,47 @@
                         }
                     });
 
-                    // Manejo de eventos para arrastrar en dispositivos táctiles
-                    gruaElemento.addEventListener('touchstart', (e) => {
-                        toqueCount++;
-                        if (toqueCount === 3) {
-                            // Cambiar el color cuando el usuario toca tres veces
-                            const colores = ['green', 'blue', 'red']; // Los colores disponibles
-                            const colorActual = gruaElemento.style.backgroundColor;
-                            const nuevoColor = colores[(colores.indexOf(colorActual) + 1) % colores.length];
-                            gruaElemento.style.backgroundColor = nuevoColor;
+                   // Manejo de eventos para arrastrar en dispositivos táctiles
+gruaElemento.addEventListener('touchstart', (e) => {
+    toqueCount++;
+    if (toqueCount === 3) {
+        // Cambiar el color cuando el usuario toca tres veces
+        const colores = ['green', 'blue', 'red']; // Los colores disponibles
+        const colorActual = gruaElemento.style.backgroundColor;
+        const nuevoColor = colores[(colores.indexOf(colorActual) + 1) % colores.length];
+        gruaElemento.style.backgroundColor = nuevoColor;
 
-                            // Resetear el contador de toques después de que se cambie el color
-                            toqueCount = 0;
+        // Actualizar el estado en Firebase
+        database.ref(gruaId).update({ estado: nuevoColor });
 
-                            // Actualizar el estado en Firebase
-                            database.ref(gruaId).update({ estado: nuevoColor });
-                        }
-                    });
+        // Resetear el contador de toques después de que se cambie el color
+        toqueCount = 0;
+    }
 
-                    document.addEventListener('touchmove', (e) => {
-                        if (moviendo) {
-                            const touch = e.touches[0];
-                            gruaElemento.style.left = (touch.clientX - offsetX) + 'px';
-                            gruaElemento.style.top = (touch.clientY - offsetY) + 'px';
-                        }
-                    });
+    // Iniciar el movimiento
+    moviendo = true;
+    offsetX = e.touches[0].clientX - gruaElemento.offsetLeft;
+    offsetY = e.touches[0].clientY - gruaElemento.offsetTop;
+});
 
-                    document.addEventListener('touchend', () => {
-                        if (moviendo) {
-                            moviendo = false;
-                            database.ref(gruaId).update({
-                                top: parseInt(gruaElemento.style.top),
-                                left: parseInt(gruaElemento.style.left)
-                            });
-                        }
-                    });
+document.addEventListener('touchmove', (e) => {
+    if (moviendo) {
+        const touch = e.touches[0];
+        gruaElemento.style.left = (touch.clientX - offsetX) + 'px';
+        gruaElemento.style.top = (touch.clientY - offsetY) + 'px';
+    }
+});
+
+document.addEventListener('touchend', () => {
+    if (moviendo) {
+        moviendo = false;
+        // Actualizar las posiciones en Firebase
+        database.ref(gruaId).update({
+            top: parseInt(gruaElemento.style.top),
+            left: parseInt(gruaElemento.style.left)
+        });
+    }
+});
 
                     // Cambiar color con doble clic
                     gruaElemento.addEventListener('dblclick', () => {
