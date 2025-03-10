@@ -247,6 +247,7 @@
                     gruaElemento.style.backgroundColor = estado || 'green';
 
                     let offsetX, offsetY, moviendo = false;
+                    let toqueCount = 0; // Variable para contar los toques
 
                     // Manejo de eventos para arrastrar en PC
                     gruaElemento.addEventListener('mousedown', (e) => {
@@ -274,29 +275,22 @@
                         }
                     });
 
-                      // Manejo de eventos para arrastrar en dispositivos táctiles
-                    gruaElemento.addEventListener('touchstart', (e) => {
-                    toqueCount++;
-                if (toqueCount === 3) {
-                // Cambiar el color cuando el usuario toca tres veces
-                    const colores = ['green', 'blue', 'red']; // Los colores disponibles
-                        const colorActual = gruaElemento.style.backgroundColor;
-                        const nuevoColor = colores[(colores.indexOf(colorActual) + 1) % colores.length];
-                        gruaElemento.style.backgroundColor = nuevoColor;
-
-                        // Resetear el contador de toques después de que se cambie el color
-                        toqueCount = 0;
-
-                        // Actualizar el estado en Firebase
-                        database.ref(gruaId).update({ estado: nuevoColor });
-                        }
-                    });
                     // Manejo de eventos para arrastrar en dispositivos táctiles
                     gruaElemento.addEventListener('touchstart', (e) => {
-                        moviendo = true;
-                        const touch = e.touches[0];
-                        offsetX = touch.clientX - gruaElemento.offsetLeft;
-                        offsetY = touch.clientY - gruaElemento.offsetTop;
+                        toqueCount++;
+                        if (toqueCount === 3) {
+                            // Cambiar el color cuando el usuario toca tres veces
+                            const colores = ['green', 'blue', 'red']; // Los colores disponibles
+                            const colorActual = gruaElemento.style.backgroundColor;
+                            const nuevoColor = colores[(colores.indexOf(colorActual) + 1) % colores.length];
+                            gruaElemento.style.backgroundColor = nuevoColor;
+
+                            // Resetear el contador de toques después de que se cambie el color
+                            toqueCount = 0;
+
+                            // Actualizar el estado en Firebase
+                            database.ref(gruaId).update({ estado: nuevoColor });
+                        }
                     });
 
                     document.addEventListener('touchmove', (e) => {
@@ -330,5 +324,6 @@
             });
         }
     </script>
+
 </body>
 </html>
