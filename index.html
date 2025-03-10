@@ -110,7 +110,10 @@
             cursor: pointer;
         }
     </style>
-	  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+	   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+
 </head>
 <body>
 
@@ -196,9 +199,15 @@
                 }
             });
 
+            const totalGruas = Object.values(estados).reduce((a, b) => a + b, 0);
+            const porcentajes = {
+                green: ((estados.green / totalGruas) * 100).toFixed(2),
+                red: ((estados.red / totalGruas) * 100).toFixed(2),
+                blue: ((estados.blue / totalGruas) * 100).toFixed(2)
+            };
+
             const ctx = document.getElementById('graficoPastel').getContext('2d');
 
-            // Destruir el gráfico anterior si existe
             if (miGrafico) {
                 miGrafico.destroy();
             }
@@ -206,16 +215,47 @@
             miGrafico = new Chart(ctx, {
                 type: 'pie',
                 data: {
-                    labels: ['Operativo (Verde)', 'Mantenimiento (Rojo)', 'Standby (Azul)'],
+                    labels: [
+                        `Operativo (Verde) - ${porcentajes.green}%`,
+                        `Mantenimiento (Rojo) - ${porcentajes.red}%`,
+                        `Standby (Azul) - ${porcentajes.blue}%`
+                    ],
                     datasets: [{
                         data: [estados.green, estados.red, estados.blue],
                         backgroundColor: ['green', 'red', 'blue']
                     }]
+                },
+                options: {
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.parsed;
+                                    const percentage = ((value / totalGruas) * 100).toFixed(2);
+                                    return `${context.label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        },
+                        legend: {
+                            onClick: function(e, legendItem) {
+                                let index = legendItem.index;
+                                let ci = this.chart;
+                                let alreadyHidden = (ci.getDatasetMeta(0).data[index].hidden === null) ? false : ci.getDatasetMeta(0).data[index].hidden;
+                                ci.getDatasetMeta(0).data.forEach(function(e, i) {
+                                    if (i === index) {
+                                        if (alreadyHidden) {
+                                            e.hidden = false;
+                                        } else {
+                                            e.hidden = !e.hidden;
+                                        }
+                                    }
+                                });
+                                ci.update();
+                            }
+                        }
+                    }
                 }
             });
-
-            modalEstadisticas.style.display = 'block'; // Usar la variable modalEstadisticas
-        }
 
         
         function iniciarSesion() {
