@@ -32,7 +32,7 @@
             font-weight: bold;
             border-radius: 10px;
             cursor: grab;
-            user-select: none; /* Agregar esta línea */
+		  user-select: none; /* Agregar esta línea */
         }
         .boton-flotante {
             position: fixed;
@@ -88,11 +88,6 @@
             <button class="cerrar-sesion" onclick="cerrarSesion()">Cerrar Sesión</button>
         </div>
         <h2>Distribución de Grúas</h2>
-        <button id="mostrarResumen">Mostrar Resumen</button>
-        <div id="resumenGruas" style="display: none; position: absolute; background-color: white; color: black; border: 1px solid black; padding: 10px;">
-            <canvas id="pastelGruas" width="200" height="200"></canvas>
-            <canvas id="barrasGruas" width="400" height="100"></canvas>
-        </div>
         <div class="contenedor"></div>
         <div class="boton-flotante">
             <button id="agregarGrua">+</button>
@@ -102,12 +97,9 @@
 
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
-        // ... (Tu código existente)
-		
-		       // Configuración de Firebase
+        // Configuración de Firebase
         var firebaseConfig = {
             apiKey: "AIzaSyArPPyaX0NoU2Gkax8bpj5MkWTLMsyZmYQ",
             authDomain: "estado-de-equipos-rtgs.firebaseapp.com",
@@ -120,76 +112,7 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-
-	function mostrarResumenGruas() {
-    		const resumenDiv = document.getElementById('resumenGruas');
-    		resumenDiv.style.display = 'block';
-    			// Volver a cargar los datos de Firebase antes de actualizar el resumen
-    			database.ref('/').once('value', snapshot => {
-        		const gruasData = snapshot.val();
-        		if (gruasData) {
-            			actualizarResumen(gruasData);
-        		}
-    			});
-	}	
-
-        function ocultarResumenGruas() {
-            const resumenDiv = document.getElementById('resumenGruas');
-            resumenDiv.style.display = 'none';
-        }
-
-	    function actualizarResumen(gruasData) {
-    const pastelCanvas = document.getElementById('pastelGruas').getContext('2d');
-    const barrasCanvas = document.getElementById('barrasGruas').getContext('2d');
-    let totalRojas = 0, totalAzules = 0, totalVerdes = 0;
-
-    // Contar el número de grúas por color usando los datos de Firebase
-    for (const key in gruasData) {
-        if (key.startsWith('grua') && gruasData[key].estado) {
-            const color = gruasData[key].estado;
-            if (color === 'red') totalRojas++;
-            else if (color === 'blue') totalAzules++;
-            else if (color === 'green') totalVerdes++;
-        }
-                new Chart(pastelCanvas, {
-                type: 'pie',
-                data: {
-                    labels: ['Rojas', 'Azules', 'Verdes'],
-                    datasets: [{
-                        data: [totalRojas, totalAzules, totalVerdes],
-                        backgroundColor: ['red', 'blue', 'green']
-                    }]
-                }
-            });
-
-            new Chart(barrasCanvas, {
-                type: 'bar',
-                data: {
-                    labels: ['Rojas', 'Azules', 'Verdes'],
-                    datasets: [{
-                        label: 'Total',
-                        data: [totalRojas, totalAzules, totalVerdes],
-                        backgroundColor: ['red', 'blue', 'green']
-                    }]
-                },
-                options: {
-                    indexAxis: 'y',
-                    scales: {
-                        y: { beginAtZero: true }
-                    }
-                }
-            });
-        }
-
-        document.getElementById('mostrarResumen').addEventListener('click', mostrarResumenGruas);
-
-        document.addEventListener('click', (e) => {
-            if (e.target.id !== 'mostrarResumen' && e.target.id !== 'resumenGruas' && !e.target.closest('#resumenGruas')) {
-                ocultarResumenGruas();
-            }
-        });
-        // ... (Tu código existente)
-		    // Verificar si hay sesión activa
+        // Verificar si hay sesión activa
         window.onload = function() {
             if (localStorage.getItem('usuario')) {
                 mostrarApp();
@@ -319,13 +242,13 @@
 
 
 			gruaElemento.addEventListener('mousedown', (e) => {
-				e.preventDefault(); // Prevenir la selección de texto
+    e.preventDefault(); // Prevenir la selección de texto
 
-				moviendo = true;
-				offsetX = e.clientX - gruaElemento.offsetLeft;
-				offsetY = e.clientY - gruaElemento.offsetTop;
-				gruaElemento.style.cursor = 'grabbing';
-			});
+    moviendo = true;
+    offsetX = e.clientX - gruaElemento.offsetLeft;
+    offsetY = e.clientY - gruaElemento.offsetTop;
+    gruaElemento.style.cursor = 'grabbing';
+});
                     document.addEventListener('mousemove', (e) => {
                         if (moviendo) {
                             gruaElemento.style.left = (e.clientX - offsetX) + 'px';
@@ -353,7 +276,6 @@
                             gruaElemento.style.backgroundColor = nuevoColor;
                             database.ref(gruaId).update({ estado: nuevoColor });
                             toqueCount = 0;
-			  
                         }
 
                         moviendo = true;
@@ -384,16 +306,12 @@
                         const nuevoEstado = colores[(colores.indexOf(gruaElemento.style.backgroundColor) + 1) % colores.length];
                         gruaElemento.style.backgroundColor = nuevoEstado;
                         database.ref(gruaId).update({ estado: nuevoEstado });
-			
-
                     });
 
                     contenedor.appendChild(gruaElemento);
                 }
             });
         }
-		
-		
     </script>
 
 </body>
