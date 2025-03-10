@@ -259,131 +259,64 @@
 
                     document.addEventListener('mousemove', (e) => {
                         if (moviendo) {
-                            gruaElemento.style.left = (e.clientX - offsetX) + 'px';
-                            gruaElemento.style.top = (e.clientY - offsetY) + 'px';
-                        }
-                    });
+                            gruaElemento.style.left = e.clientX - offsetX + 'px';
+                            gruaElemento.style.top = e.clientY - offsetY + 'px';
 
-                    document.addEventListener('mouseup', () => {
-                        if (moviendo) {
-                            moviendo = false;
-                            gruaElemento.style.cursor = 'grab';
+                            // Actualizar la posición de la grúa en Firebase
+                            const posX = e.clientX - offsetX;
+                            const posY = e.clientY - offsetY;
                             database.ref(gruaId).update({
-                                top: parseInt(gruaElemento.style.top),
-                                left: parseInt(gruaElemento.style.left)
+                                top: posY,
+                                left: posX
                             });
                         }
                     });
 
-                   // Manejo de eventos para arrastrar en dispositivos táctiles
-gruaElemento.addEventListener('touchstart', (e) => {
-    toqueCount++;
-    if (toqueCount === 3) {
-        // Cambiar el color cuando el usuario toca tres veces
-        const colores = ['green', 'blue', 'red']; // Los colores disponibles
-        const colorActual = gruaElemento.style.backgroundColor;
-        const nuevoColor = colores[(colores.indexOf(colorActual) + 1) % colores.length];
-        gruaElemento.style.backgroundColor = nuevoColor;
+                    document.addEventListener('mouseup', () => {
+                        moviendo = false;
+                        gruaElemento.style.cursor = 'grab';
+                    });
 
-        // Actualizar el estado en Firebase
-        database.ref(gruaId).update({ estado: nuevoColor });
+                    // Manejo de eventos para arrastrar en dispositivos táctiles
+                    gruaElemento.addEventListener('touchstart', (e) => {
+                        toqueCount++;
+                        if (toqueCount === 3) {
+                            // Cambiar el color cuando el usuario toca tres veces
+                            const colores = ['green', 'blue', 'red']; // Los colores disponibles
+                            const colorActual = gruaElemento.style.backgroundColor;
+                            const nuevoColor = colores[(colores.indexOf(colorActual) + 1) % colores.length];
+                            gruaElemento.style.backgroundColor = nuevoColor;
 
-        // Resetear el contador de toques después de que se cambie el color
-        toqueCount = 0;
-    }
+                            // Actualizar el estado en Firebase
+                            database.ref(gruaId).update({ estado: nuevoColor });
 
-    // Iniciar el movimiento
-    moviendo = true;
-    offsetX = e.touches[0].clientX - gruaElemento.offsetLeft;
-    offsetY = e.touches[0].clientY - gruaElemento.offsetTop;
-});
+                            // Resetear el contador de toques después de que se cambie el color
+                            toqueCount = 0;
+                        }
 
-document.addEventListener('touchmove', (e) => {
-    if (moviendo) {
-        const touch = e.touches[0];
-        gruaElemento.style.left = (touch.clientX - offsetX) + 'px';
-        gruaElemento.style.top = (touch.clientY - offsetY) + 'px';
-    }
-});
+                        // Iniciar el movimiento
+                        moviendo = true;
+                        offsetX = e.touches[0].clientX - gruaElemento.offsetLeft;
+                        offsetY = e.touches[0].clientY - gruaElemento.offsetTop;
+                    });
 
-document.addEventListener('touchend', () => {
-    if (moviendo) {
-        moviendo = false;
-        // Actualizar las posiciones en Firebase
-        database.ref(gruaId).update({
-            top: parseInt(gruaElemento.style.top),
-            left: parseInt(gruaElemento.style.left)
-        });
-    }
-});
+                    document.addEventListener('touchmove', (e) => {
+                        if (moviendo) {
+                            gruaElemento.style.left = e.touches[0].clientX - offsetX + 'px';
+                            gruaElemento.style.top = e.touches[0].clientY - offsetY + 'px';
 
+                            // Actualizar la posición de la grúa en Firebase
+                            const posX = e.touches[0].clientX - offsetX;
+                            const posY = e.touches[0].clientY - offsetY;
+                            database.ref(gruaId).update({
+                                top: posY,
+                                left: posX
+                            });
+                        }
+                    });
 
-                    // Dentro de tu código, en la parte donde manejas el evento 'touchstart', 'touchmove' y 'touchend' para las grúas:
-
-let tiempoPresionado = null; // Variable para controlar el tiempo de presión
-let tiempoMinimo = 1000; // Tiempo en milisegundos (1 segundo) para cambiar de color
-let distanciaMinima = 10; // Distancia mínima que el dedo puede moverse antes de considerarse un "deslizamiento"
-let desplazamiento = { x: 0, y: 0 }; // Para almacenar el desplazamiento durante el toque
-let posicionInicial = { x: 0, y: 0 }; // Almacenar la posición inicial del toque
-
-gruaElemento.addEventListener('touchstart', (e) => {
-    // Guardar la posición inicial del toque
-    posicionInicial = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-
-    // Resetear desplazamiento cuando comienza el toque
-    desplazamiento = { x: 0, y: 0 };
-
-    // Guardar el tiempo en que comienza el toque
-    tiempoPresionado = setTimeout(() => {
-        // Solo cambiar de color si el dedo no se movió más allá del umbral
-        if (Math.abs(desplazamiento.x) <= distanciaMinima && Math.abs(desplazamiento.y) <= distanciaMinima) {
-            const colores = ['green', 'blue', 'red']; // Los colores disponibles
-            const colorActual = gruaElemento.style.backgroundColor;
-            const nuevoColor = colores[(colores.indexOf(colorActual) + 1) % colores.length];
-            gruaElemento.style.backgroundColor = nuevoColor;
-
-            // Actualizar el estado en Firebase
-            database.ref(gruaId).update({ estado: nuevoColor });
-        }
-    }, tiempoMinimo);
-
-    // Iniciar el movimiento
-    moviendo = true;
-    offsetX = e.touches[0].clientX - gruaElemento.offsetLeft;
-    offsetY = e.touches[0].clientY - gruaElemento.offsetTop;
-});
-
-gruaElemento.addEventListener('touchmove', (e) => {
-    // Calcular el desplazamiento
-    desplazamiento.x = e.touches[0].clientX - posicionInicial.x;
-    desplazamiento.y = e.touches[0].clientY - posicionInicial.y;
-
-    // Si el desplazamiento es mayor que el umbral, cancelar el cambio de color
-    if (Math.abs(desplazamiento.x) > distanciaMinima || Math.abs(desplazamiento.y) > distanciaMinima) {
-        clearTimeout(tiempoPresionado); // Cancelar el temporizador de cambio de color
-    }
-
-    // Mover la grúa mientras el usuario desliza el dedo
-    if (moviendo) {
-        const touch = e.touches[0];
-        gruaElemento.style.left = (touch.clientX - offsetX) + 'px';
-        gruaElemento.style.top = (touch.clientY - offsetY) + 'px';
-    }
-});
-
-gruaElemento.addEventListener('touchend', () => {
-    // Cancelar el temporizador si se levanta el dedo antes de tiempo
-    clearTimeout(tiempoPresionado);
-    moviendo = false;
-});
-
-
-                    // Cambiar color con doble clic
-                    gruaElemento.addEventListener('dblclick', () => {
-                        const colores = ['green', 'blue', 'red'];
-                        const nuevoEstado = colores[(colores.indexOf(gruaElemento.style.backgroundColor) + 1) % colores.length];
-                        gruaElemento.style.backgroundColor = nuevoEstado;
-                        database.ref(gruaId).update({ estado: nuevoEstado });
+                    document.addEventListener('touchend', () => {
+                        moviendo = false;
                     });
 
                     contenedor.appendChild(gruaElemento);
@@ -391,6 +324,5 @@ gruaElemento.addEventListener('touchend', () => {
             });
         }
     </script>
-
 </body>
 </html>
