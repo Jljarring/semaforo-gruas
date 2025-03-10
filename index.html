@@ -74,14 +74,6 @@
     </style>
 </head>
 <body>
-
-	<div id="app" style="display: none;">
-    <button id="mostrarResumen">Mostrar Resumen</button>
-    <div id="resumenGruas" style="display: none; position: absolute; background-color: white; color: black; border: 1px solid black; padding: 10px;">
-        <canvas id="pastelGruas" width="200" height="200"></canvas>
-        <canvas id="barrasGruas" width="400" height="100"></canvas>
-    </div>
-    </div>
 	
     <div id="login">
         <h2>Iniciar Sesión</h2>
@@ -91,17 +83,27 @@
         <p id="errorMensaje" style="color: red;"></p>
     </div>
 
+
+
+	
     <div id="app" style="display: none;">
         <div class="usuario-info" id="usuarioInfo" style="display: none;">
             <span id="usuarioNombre"></span>
             <button class="cerrar-sesion" onclick="cerrarSesion()">Cerrar Sesión</button>
         </div>
         <h2>Distribución de Grúas</h2>
+    	<button id="mostrarResumen">Mostrar Resumen</button>
+    	<div id="resumenGruas" style="display: none; position: absolute; background-color: white; color: black; border: 1px solid black; padding: 10px;">
+        <canvas id="pastelGruas" width="200" height="200"></canvas>
+        <canvas id="barrasGruas" width="400" height="100"></canvas>
+    	</div>
+	    
         <div class="contenedor"></div>
         <div class="boton-flotante">
             <button id="agregarGrua">+</button>
             <button id="eliminarGrua">-</button>
         </div>
+
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
