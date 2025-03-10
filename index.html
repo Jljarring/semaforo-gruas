@@ -286,12 +286,12 @@
             cargarEstados();
         }
 
-        function cerrarSesion() {
-            localStorage.reentById('usuarioInfo').style.display = 'flex';
-            document.getElemmoveItem('usuario');
-            document.getElementById('login').style.display = 'block';
-            document.getElementById('app').style.display = 'none';
-        }
+ function cerrarSesion() {
+    localStorage.removeItem('usuario');
+    document.getElementById('login').style.display = 'block';
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('usuarioInfo').style.display = 'none';
+}
 
         function abrirVentanaEmergente() {
             const numeroGrua = prompt("Ingrese el número de la grúa:");
