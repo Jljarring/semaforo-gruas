@@ -317,6 +317,67 @@ document.addEventListener('touchend', () => {
     }
 });
 
+
+                    // Dentro de tu código, en la parte donde manejas el evento 'touchstart', 'touchmove' y 'touchend' para las grúas:
+
+let tiempoPresionado = null; // Variable para controlar el tiempo de presión
+let tiempoMinimo = 1000; // Tiempo en milisegundos (1 segundo) para cambiar de color
+let distanciaMinima = 10; // Distancia mínima que el dedo puede moverse antes de considerarse un "deslizamiento"
+let desplazamiento = { x: 0, y: 0 }; // Para almacenar el desplazamiento durante el toque
+let posicionInicial = { x: 0, y: 0 }; // Almacenar la posición inicial del toque
+
+gruaElemento.addEventListener('touchstart', (e) => {
+    // Guardar la posición inicial del toque
+    posicionInicial = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+
+    // Resetear desplazamiento cuando comienza el toque
+    desplazamiento = { x: 0, y: 0 };
+
+    // Guardar el tiempo en que comienza el toque
+    tiempoPresionado = setTimeout(() => {
+        // Solo cambiar de color si el dedo no se movió más allá del umbral
+        if (Math.abs(desplazamiento.x) <= distanciaMinima && Math.abs(desplazamiento.y) <= distanciaMinima) {
+            const colores = ['green', 'blue', 'red']; // Los colores disponibles
+            const colorActual = gruaElemento.style.backgroundColor;
+            const nuevoColor = colores[(colores.indexOf(colorActual) + 1) % colores.length];
+            gruaElemento.style.backgroundColor = nuevoColor;
+
+            // Actualizar el estado en Firebase
+            database.ref(gruaId).update({ estado: nuevoColor });
+        }
+    }, tiempoMinimo);
+
+    // Iniciar el movimiento
+    moviendo = true;
+    offsetX = e.touches[0].clientX - gruaElemento.offsetLeft;
+    offsetY = e.touches[0].clientY - gruaElemento.offsetTop;
+});
+
+gruaElemento.addEventListener('touchmove', (e) => {
+    // Calcular el desplazamiento
+    desplazamiento.x = e.touches[0].clientX - posicionInicial.x;
+    desplazamiento.y = e.touches[0].clientY - posicionInicial.y;
+
+    // Si el desplazamiento es mayor que el umbral, cancelar el cambio de color
+    if (Math.abs(desplazamiento.x) > distanciaMinima || Math.abs(desplazamiento.y) > distanciaMinima) {
+        clearTimeout(tiempoPresionado); // Cancelar el temporizador de cambio de color
+    }
+
+    // Mover la grúa mientras el usuario desliza el dedo
+    if (moviendo) {
+        const touch = e.touches[0];
+        gruaElemento.style.left = (touch.clientX - offsetX) + 'px';
+        gruaElemento.style.top = (touch.clientY - offsetY) + 'px';
+    }
+});
+
+gruaElemento.addEventListener('touchend', () => {
+    // Cancelar el temporizador si se levanta el dedo antes de tiempo
+    clearTimeout(tiempoPresionado);
+    moviendo = false;
+});
+
+
                     // Cambiar color con doble clic
                     gruaElemento.addEventListener('dblclick', () => {
                         const colores = ['green', 'blue', 'red'];
