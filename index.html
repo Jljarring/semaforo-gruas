@@ -299,6 +299,17 @@
                         gruaElemento.style.cursor = 'grab';
                     });
 
+                    // Cambio de color al hacer clic con el mouse
+                    gruaElemento.addEventListener('click', () => {
+                        const colores = ['green', 'blue', 'red']; // Los colores disponibles
+                        const colorActual = gruaElemento.style.backgroundColor;
+                        const nuevoColor = colores[(colores.indexOf(colorActual) + 1) % colores.length];
+                        gruaElemento.style.backgroundColor = nuevoColor;
+
+                        // Actualizar el estado en Firebase
+                        database.ref(gruaId).update({ estado: nuevoColor });
+                    });
+
                     // Manejo de eventos para arrastrar en dispositivos táctiles
                     gruaElemento.addEventListener('touchstart', (e) => {
                         toqueCount++;
