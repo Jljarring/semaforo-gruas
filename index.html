@@ -70,9 +70,59 @@
             font-size: 16px;
             color: white;
         }
+	      .boton-flotante-estadisticas {
+            position: fixed;
+            bottom: 20px;
+            right: 80px;
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            background-color: lightblue;
+            color: black;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-contenido {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 600px;
+        }
+        .cerrar-modal {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
     </style>
+	  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
+
+	<button class="boton-flotante-estadisticas" id="mostrarEstadisticas"></button>
+
+    <div id="modalEstadisticas" class="modal">
+        <div class="modal-contenido">
+            <span class="cerrar-modal" id="cerrarModal">&times;</span>
+            <h2>Estadísticas de Grúas</h2>
+            <canvas id="graficoPastel"></canvas>
+        </div>
+    </div>
 
     <div id="login">
         <h2>Iniciar Sesión</h2>
@@ -99,6 +149,8 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
     <script>
+
+	    
         // Configuración de Firebase
         var firebaseConfig = {
             apiKey: "AIzaSyArPPyaX0NoU2Gkax8bpj5MkWTLMsyZmYQ",
@@ -119,6 +171,39 @@
             }
         };
 
+
+	           document.getElementById('mostrarEstadisticas').addEventListener('click', () => {
+            mostrarEstadisticas();
+        });
+
+        document.getElementById('cerrarModal').addEventListener('click', () => {
+            document.getElementById('modalEstadisticas').style.display = 'none';
+        });
+
+        function mostrarEstadisticas() {
+            const estados = { green: 0, red: 0, blue: 0 };
+            const gruas = document.querySelectorAll('.grua');
+            gruas.forEach(grua => {
+                const color = grua.style.backgroundColor;
+                if (estados[color] !== undefined) {
+                    estados[color]++;
+                }
+            });
+
+            const ctx = document.getElementById('graficoPastel').getContext('2d');
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Operativo (Verde)', 'Mantenimiento (Rojo)', 'Standby (Azul)'],
+                    datasets: [{
+                        data: [estados.green, estados.red, estados.blue],
+                        backgroundColor: ['green', 'red', 'blue']
+                    }]
+                }
+            });
+
+            document.getElementById('modalEstadisticas').style.display = 'block';
+        }
         function iniciarSesion() {
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
