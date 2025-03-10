@@ -115,6 +115,7 @@
 <body>
 
 	
+
     <button class="boton-flotante-estadisticas" id="mostrarEstadisticas"></button>
 
     <div id="modalEstadisticas" class="modal">
@@ -124,7 +125,6 @@
             <canvas id="graficoPastel"></canvas>
         </div>
     </div>
-
 
 
     <div id="login">
@@ -176,13 +176,14 @@
 
 
 	        let miGrafico; // Variable para almacenar la instancia del gráfico
+        const modalEstadisticas = document.getElementById('modalEstadisticas'); // Obtener el modal una sola vez
 
         document.getElementById('mostrarEstadisticas').addEventListener('click', () => {
             mostrarEstadisticas();
         });
 
         document.getElementById('cerrarModal').addEventListener('click', () => {
-            document.getElementById('modalEstadisticas').style.display = 'none';
+            modalEstadisticas.style.display = 'none'; // Usar la variable modalEstadisticas
         });
 
         function mostrarEstadisticas() {
@@ -213,16 +214,8 @@
                 }
             });
 
-            document.getElementById('modalEstadisticas').style.display = 'block';
-         }
-	    
-	document.getElementById('mostrarEstadisticas').addEventListener('click', () => {
-            mostrarEstadisticas();
-        });
-
-        document.getElementById('cerrarModal').addEventListener('click', () => {
-            document.getElementById('modalEstadisticas').style.display = 'none';
-        });
+            modalEstadisticas.style.display = 'block'; // Usar la variable modalEstadisticas
+        }
 
         function mostrarEstadisticas() {
             const estados = { green: 0, red: 0, blue: 0 };
