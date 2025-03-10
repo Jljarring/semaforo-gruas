@@ -277,6 +277,22 @@
                         gruaElemento.style.cursor = 'grab';
                     });
 
+            // Detectar doble clic para cambiar el color
+            gruaElemento.addEventListener('click', (e) => {
+                const tiempoActual = new Date().getTime();
+                if (tiempoActual - ultimoClic <= 300) { // 300 ms para considerar un doble clic
+                    const colores = ['green', 'blue', 'red']; // Los colores disponibles
+                    const colorActual = gruaElemento.style.backgroundColor;
+                    const nuevoColor = colores[(colores.indexOf(colorActual) + 1) % colores.length];
+                    gruaElemento.style.backgroundColor = nuevoColor;
+
+                    // Actualizar el estado en Firebase
+                    database.ref(gruaId).update({ estado: nuevoColor });
+                }
+                ultimoClic = tiempoActual;
+            });
+                    
+
                     // Manejo de eventos para arrastrar en dispositivos táctiles
                     gruaElemento.addEventListener('touchstart', (e) => {
                         toqueCount++;
