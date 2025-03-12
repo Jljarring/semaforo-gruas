@@ -116,12 +116,12 @@
     max-width: 800px; /* Establecer un ancho máximo */
     margin: 20px auto; /* Centrar la tabla horizontalmente */
     border-collapse: collapse;
-    font-size: 20px; /* Reducir aún más el tamaño de la fuente */
+    font-size: 17px; /* Reducir aún más el tamaño de la fuente */
 }
 
 .tabla-semaforo th, .tabla-semaforo td {
-    border: 3px solid #fff;
-    padding: 4px; /* Reducir aún más el padding */
+    border: 2px solid #fff;
+    padding: 3px; /* Reducir aún más el padding */
     text-align: center;
 }
 
@@ -512,16 +512,25 @@
                 }
             });
 			
-			actualizarTablaSemaforos();
+			      actualizarTablaSemaforos();
         }
 		
         function actualizarTablaSemaforos() {
             const tablaBody = document.querySelector('#tablaSemaforos tbody');
             tablaBody.innerHTML = ''; // Limpiar la tabla
+            
+           //const gruas = document.querySelectorAll('.grua');   //codigo anterior si falla ub icar         
+            const gruas = Array.from(document.querySelectorAll('.grua')); // Obtener las grúas como un array
 
+              // Ordenar las grúas por número
+              gruas.sort((a, b) => {
+              const numeroA = parseInt(a.textContent);
+              const numeroB = parseInt(b.textContent);
+              return numeroA - numeroB;
+              });
+          
+           
             const estados = { green: 0, red: 0, blue: 0 };
-            const gruas = document.querySelectorAll('.grua');
-
             gruas.forEach(grua => {
                 const color = grua.style.backgroundColor;
                 const numero = grua.textContent;
