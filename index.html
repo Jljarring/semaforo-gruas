@@ -109,6 +109,43 @@
             font-weight: bold;
             cursor: pointer;
         }
+		
+  
+.tabla-semaforo {
+    width: auto; /* Ajustar el ancho automáticamente */
+    max-width: 800px; /* Establecer un ancho máximo */
+    margin: 20px auto; /* Centrar la tabla horizontalmente */
+    border-collapse: collapse;
+    font-size: 20px; /* Reducir aún más el tamaño de la fuente */
+}
+
+.tabla-semaforo th, .tabla-semaforo td {
+    border: 3px solid #fff;
+    padding: 4px; /* Reducir aún más el padding */
+    text-align: center;
+}
+
+.tabla-semaforo th {
+    background-color: #444;
+}
+
+.tabla-semaforo th:nth-child(1),
+.tabla-semaforo td:nth-child(1) {
+    width: 40px; /* Ajustar el ancho de la columna "Grúa" */
+}
+
+.tabla-semaforo th:nth-child(2),
+.tabla-semaforo td:nth-child(2),
+.tabla-semaforo th:nth-child(3),
+.tabla-semaforo td:nth-child(3),
+.tabla-semaforo th:nth-child(4),
+.tabla-semaforo td:nth-child(4) {
+    width: 60px; /* Ajustar el ancho de las columnas de estado */
+}
+        canvas {
+            margin-top: 20px;
+        }
+		
     </style>
 	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -147,6 +184,26 @@
             <button id="eliminarGrua">-</button>
         </div>
     </div>
+	
+    <table class="tabla-semaforo" id="tablaSemaforos">
+        <thead>
+            <tr>
+                <th>Grúa</th>
+                <th>Mantenimiento (Rojo)</th>
+                <th>Operativa (Verde)</th>
+                <th>Standby (Azul)</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+            <tr>
+                <td><strong>Total</strong></td>
+                <td id="totalRojo">0</td>
+                <td id="totalVerde">0</td>
+                <td id="totalAzul">0</td>
+            </tr>
+        </tfoot>
+    </table>
 
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -270,6 +327,8 @@
                 estado: 'green'
             });
         }
+		
+
 
         function cargarEstados() {
             const contenedor = document.querySelector('.contenedor');
@@ -285,6 +344,7 @@
                     contenedor.appendChild(imagenPlano);
                 }
             });
+
 
             document.getElementById('agregarGrua').onclick = function() {
                 abrirVentanaEmergente();
@@ -306,7 +366,34 @@
                 }
             });
 
-		
+    database.ref('/').on('child_removed', snapshot => {
+        const gruaId = snapshot.key;
+        const gruaElemento = document.getElementById(gruaId);
+        if (gruaElemento) {
+            const numeroGrua = gruaElemento.textContent; // Obtener el número del DOM
+            gruaElemento.remove();
+            actualizarTablaSemaforos();
+            alert(`Grúa ${numeroGrua} eliminada.`);
+            gruasEliminadas.push(gruaId); // Agregar gruaId a la lista de eliminados
+        }
+    });
+          
+              database.ref('/').on('child_changed', snapshot => {
+        const gruaId = snapshot.key;
+        if (gruaId.startsWith('grua') && !gruasEliminadas.includes(gruaId)) {
+            const gruaElemento = document.getElementById(gruaId);
+            if(gruaElemento){
+                const { estado, top, left } = snapshot.val();
+                if (gruaElemento) {
+                    gruaElemento.style.top = top + 'px';
+                    gruaElemento.style.left = left + 'px';
+                    gruaElemento.style.backgroundColor = estado || 'green';
+                    actualizarTablaSemaforos();
+                }
+            }
+        }
+    });
+
 
             database.ref('/').on('child_changed', snapshot => {
                 const gruaId = snapshot.key;
@@ -317,11 +404,12 @@
                         gruaElemento.style.top = top + 'px';
                         gruaElemento.style.left = left + 'px';
                         gruaElemento.style.backgroundColor = estado || 'green';
+                        actualizarTablaSemaforos(); // Actualizar la tabla después de un cambio
                     }
                 }
             });
 
-	    database.ref('/').on('child_added', snapshot => {
+	        database.ref('/').on('child_added', snapshot => {
                 const gruaId = snapshot.key;
                 if (gruaId.startsWith('grua')) {
                     const { estado, top, left, numero } = snapshot.val();
@@ -333,7 +421,7 @@
                     gruaElemento.style.left = left + 'px';
                     gruaElemento.textContent = numero || gruaId.replace('grua', '');
                     gruaElemento.style.backgroundColor = estado || 'green';
-
+                    actualizarTablaSemaforos(); // Actualizar la tabla después de un cambio
                     let offsetX, offsetY, moviendo = false;
                     let toqueCount = 0;
 
@@ -347,7 +435,19 @@
     offsetY = e.clientY - gruaElemento.offsetTop;
     gruaElemento.style.cursor = 'grabbing';
 });
-                    document.addEventListener('mousemove', (e) => {
+                    
+                  
+                      document.getElementById('eliminarGrua').onclick = function() {
+        const gruaSeleccionada = document.querySelector('.grua.seleccionada');
+        if (gruaSeleccionada) {
+            database.ref(gruaSeleccionada.id).remove().then(() => {
+                gruaSeleccionada.remove();
+            });
+        }
+    };
+                  
+                  
+                  document.addEventListener('mousemove', (e) => {
                         if (moviendo) {
                             gruaElemento.style.left = (e.clientX - offsetX) + 'px';
                             gruaElemento.style.top = (e.clientY - offsetY) + 'px';
@@ -404,12 +504,52 @@
                         const nuevoEstado = colores[(colores.indexOf(gruaElemento.style.backgroundColor) + 1) % colores.length];
                         gruaElemento.style.backgroundColor = nuevoEstado;
                         database.ref(gruaId).update({ estado: nuevoEstado });
+						
                     });
 
                     contenedor.appendChild(gruaElemento);
+                   actualizarTablaSemaforos(); // Actualizar la tabla después de agregar una grúa
                 }
             });
+			
+			actualizarTablaSemaforos();
         }
+		
+        function actualizarTablaSemaforos() {
+            const tablaBody = document.querySelector('#tablaSemaforos tbody');
+            tablaBody.innerHTML = ''; // Limpiar la tabla
+
+            const estados = { green: 0, red: 0, blue: 0 };
+            const gruas = document.querySelectorAll('.grua');
+
+            gruas.forEach(grua => {
+                const color = grua.style.backgroundColor;
+                const numero = grua.textContent;
+
+                // Contar las grúas por color
+                if (color === 'green') estados.green++;
+                else if (color === 'red') estados.red++;
+                else if (color === 'blue') estados.blue++;
+
+                // Crear una fila para cada grúa
+                const fila = document.createElement('tr');
+                fila.innerHTML = `
+                    <td>${numero}</td>
+                    <td>${color === 'red' ? 'X' : ''}</td>
+                    <td>${color === 'green' ? 'X' : ''}</td>
+                    <td>${color === 'blue' ? 'X' : ''}</td>
+                `;
+                tablaBody.appendChild(fila);
+            });
+
+            // Actualizar los totales en la tabla
+            document.getElementById('totalRojo').textContent = estados.red;
+            document.getElementById('totalVerde').textContent = estados.green;
+            document.getElementById('totalAzul').textContent = estados.blue;
+        }
+
+
+			
     </script>
 
 </body>
