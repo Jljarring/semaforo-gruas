@@ -1,15 +1,154 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
+    
+  <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Semáforo de Grúas</title>
+         <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     <style>
         body {
             background-color: #f06d06;
             color: white;
             text-align: center;
             font-family: Arial, sans-serif;
+        }
+
+        /* Barra de navegación */
+        .navbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #a02a2a;
+            padding: 30px 20px;
+            color: white;
+            font-size: 18px;
+            width: 100%;
+            position: center;
+        }
+
+        /* Izquierda: Logo y nombre */
+        .navbar-left {
+            position: absolute;
+            left: 2%;
+            
+          transform: translateY(-50%);
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .logo {
+            height: 30px;
+            margin-right: 10px;
+        }
+
+        /* Centro: Título */
+        .navbar-center {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+          transform: translateY(-50%);
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        /* Derecha: Usuario */
+        .navbar-right {          
+            position: absolute;
+            left: 90%;
+            
+           transform: translateY(-50%);
+            font-size: 20px;
+            font-weight: bold;
+           
+        }
+
+        .user-menu {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .username {
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .fas.fa-user {
+            margin-right: 5px;
+        }
+
+        /* Dropdown */
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 150px;
+            text-align: center;
+            z-index: 100;
+        }
+
+        .dropdown-menu a {
+            display: block;
+            padding: 10px;
+            color: black;
+            text-decoration: none;
+        }
+
+        .dropdown-menu a:hover {
+            background-color: #f1f1f1;
+        }
+
+      
+      #login {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            margin: 20px auto;
+            text-align: center;
+        }
+
+        #login h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        #login input {
+            width: calc(100% - 22px);
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            outline: none;
+            margin-bottom: 15px;
+        }
+
+        #login button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        #login button:hover {
+            background-color: #0056b3;
+        }
+
+      
+      
+      
+      
+      
+        #login p#errorMensaje {
+            margin-top: 10px;
         }
         .contenedor {
             position: relative;
@@ -62,14 +201,7 @@
             align-items: center;
             gap: 10px;
         }
-        .cerrar-sesion {
-            cursor: pointer;
-            background-color: red;
-            border-radius: 50%;
-            padding: 5px 10px;
-            font-size: 16px;
-            color: white;
-        }
+
 	            .boton-flotante-estadisticas {
             position: fixed;
             bottom: 20px;
@@ -145,14 +277,51 @@
         canvas {
             margin-top: 20px;
         }
-		
+		        .main-content {
+            width: 90%; /* Ajusta el ancho según tus necesidades */
+            max-width: 1200px; /* Ancho máximo para pantallas grandes */
+            margin: 20px auto; /* Centrar el contenido */
+            text-align: center; /* Asegura que el contenido interno también se centre */
+        }
     </style>
 	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
 
+  <div id="navbar" class="navbar">
+    <!-- Sección izquierda: Logo y título -->
+    <div class="navbar-left">
+        <span class="navbar-heading">Desarrollo Independiente JJLG</span>
+    </div>
+
+    <!-- Sección central: Título de la página   borre ese titulo-->
+    <div class="navbar-center">
+        <span class="navbar-heading"></span>
+    </div>
+
+    <!-- Sección derecha: Usuario -->
+    <div class="navbar-right">
+        <div class="user-menu">
+            <span class="username" onclick="toggleMenu()">
+                <i class="fas fa-user"></i>
+                <span id="usuarioNombre">admin</span> ▼
+            </span>
+            <div id="dropdown-menu" class="dropdown-menu">
+                <a href="#" onclick="logout()">Cerrar sesión</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
     <button class="boton-flotante-estadisticas" id="mostrarEstadisticas"></button>
+  
+
+
+
+
 
     <div id="modalEstadisticas" class="modal">
 	    
@@ -175,7 +344,7 @@
     <div id="app" style="display: none;">
         <div class="usuario-info" id="usuarioInfo" style="display: none;">
             <span id="usuarioNombre"></span>
-            <button class="cerrar-sesion" onclick="cerrarSesion()">Cerrar Sesión</button>
+      
         </div>
         <h2>Distribución de Grúas</h2>
         <div class="contenedor"></div>
@@ -209,6 +378,8 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
     <script>
+      
+
         // Configuración de Firebase
         var firebaseConfig = {
             apiKey: "AIzaSyArPPyaX0NoU2Gkax8bpj5MkWTLMsyZmYQ",
@@ -223,11 +394,17 @@
         const database = firebase.database();
 
         // Verificar si hay sesión activa
-        window.onload = function() {
-            if (localStorage.getItem('usuario')) {
-                mostrarApp();
-            }
-        };
+    window.onload = function() {
+    const tablaBody = document.querySelector('#tablaSemaforos tbody');
+    tablaBody.innerHTML = '';
+
+    if (localStorage.getItem('usuario')) {
+        mostrarApp();
+    } else {
+        document.getElementById('mostrarEstadisticas').style.display = 'none';
+        document.getElementById('tablaSemaforos').style.display = 'none';
+    }
+};
 
         function iniciarSesion() {
             const username = document.getElementById('username').value;
@@ -261,15 +438,14 @@
             modalEstadisticas.style.display = 'none';
         });
 
-        function mostrarEstadisticas() {
+          function mostrarEstadisticas() {
             const estados = { green: 0, red: 0, blue: 0 };
             const gruas = document.querySelectorAll('.grua');
             gruas.forEach(grua => {
                 const color = grua.style.backgroundColor;
                 if (estados[color] !== undefined) {
                     estados[color]++;
-                }
-            });
+            }});
 
             const ctx = document.getElementById('graficoPastel').getContext('2d');
 
@@ -292,22 +468,61 @@
         }
 
 	    
-        function mostrarApp() {
-            document.getElementById('login').style.display = 'none';
-            document.getElementById('app').style.display = 'block';
-            document.getElementById('usuarioInfo').style.display = 'flex';
-            document.getElementById('usuarioNombre').textContent = localStorage.getItem('usuario');
-	    document.getElementById('mostrarEstadisticas').style.display = 'block'; // Agregar esta línea	
-            cargarEstados();
+function mostrarApp() {
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    document.getElementById('usuarioInfo').style.display = 'flex';
+    document.getElementById('usuarioNombre').textContent = localStorage.getItem('usuario');
+    document.getElementById('mostrarEstadisticas').style.display = 'block';
+    document.getElementById('tablaSemaforos').style.display = 'table';
+    document.getElementById("navbar").style.display = 'block';
+    cargarEstados();
+}
+
+    document.addEventListener("DOMContentLoaded", function () {
+      var usuario = localStorage.getItem("usuario");
+        if (usuario) {
+            document.getElementById("usuarioNombre").textContent = usuario;
+            document.getElementById("navbar").style.display = "block";
+            mostrarApp(); // Llamar a mostrarApp() para cargar la aplicación si hay usuario
+        } else {
+            document.getElementById("navbar").style.display = "none";
+            mostrarFormularioLogin();
         }
 
-        function cerrarSesion() {
+});
+      
+      function toggleMenu() {
+    const menu = document.getElementById('dropdown-menu');
+    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+}
+
+  
+        function logout() {
+          alert("Cerrando sesión...");
             localStorage.removeItem('usuario');
             document.getElementById('login').style.display = 'block';
             document.getElementById('app').style.display = 'none';
-	    document.getElementById('mostrarEstadisticas').style.display = 'none'; // Agregar esta línea
-
+	         document.getElementById('mostrarEstadisticas').style.display = 'none'; // Agregar esta línea
+           document.getElementById('tablaSemaforos').style.display = 'none'; // Agregar esta línea
+           document.getElementById('dropdown-menu').style.display = 'block';
+              
+          document.getElementById("navbar").style.display = "none"; // Ocultar navbar
+          mostrarFormularioLogin(); // Mostrar formulario de login en la misma página
+              // Limpiar la tabla
+          const tablaBody = document.querySelector('#tablaSemaforos tbody');               
+          tablaBody.innerHTML = '';
+          
+            // Limpiar campos del formulario de inicio de sesión
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('errorMensaje').textContent = ''; // Limpiar mensaje de error
         }
+      
+      // Función para mostrar el formulario de login
+function mostrarFormularioLogin() {
+    document.getElementById("login").style.display = "block";
+}
 
         function abrirVentanaEmergente() {
             const numeroGrua = prompt("Ingrese el número de la grúa:");
@@ -514,6 +729,15 @@
 			
 			      actualizarTablaSemaforos();
         }
+      
+      document.addEventListener('click', function(event) {
+  const menu = document.getElementById('dropdown-menu');
+  const userMenu = document.querySelector('.user-menu');
+
+  if (menu.style.display === 'block' && !userMenu.contains(event.target)) {
+    menu.style.display = 'none';
+  }
+});
 		
         function actualizarTablaSemaforos() {
             const tablaBody = document.querySelector('#tablaSemaforos tbody');
