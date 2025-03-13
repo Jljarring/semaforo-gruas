@@ -7,7 +7,7 @@
     <title>Semáforo de Grúas</title>
          <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     <style>
-	body {
+        body {
             background-color: #f06d06;
             color: white;
             text-align: center;
@@ -113,6 +113,19 @@
             margin: 20px auto;
             text-align: center;
         }
+      
+      /* Contenedor para el formulario de inicio de sesión */
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f06d06; /* Mantén el fondo naranja */
+}
+
+
+      
+      
 
         #login h2 {
             margin-bottom: 20px;
@@ -241,6 +254,10 @@
             font-weight: bold;
             cursor: pointer;
         }
+      
+      .oculto {
+    display: none;
+}
 		
   
 .tabla-semaforo {
@@ -333,6 +350,8 @@
         </div>
 	    
     </div>
+  
+  <div class="login-container oculto">
     <div id="login">
         <h2>Iniciar Sesión</h2>
         <input type="text" id="username" placeholder="Usuario">
@@ -340,6 +359,7 @@
         <button onclick="iniciarSesion()">Ingresar</button>
         <p id="errorMensaje" style="color: red;"></p>
     </div>
+</div>
 
     <div id="app" style="display: none;">
         <div class="usuario-info" id="usuarioInfo" style="display: none;">
@@ -476,6 +496,7 @@ function mostrarApp() {
     document.getElementById('mostrarEstadisticas').style.display = 'block';
     document.getElementById('tablaSemaforos').style.display = 'table';
     document.getElementById("navbar").style.display = 'block';
+   document.querySelector('.login-container').classList.add('oculto'); // Añade esta línea
     cargarEstados();
 }
 
@@ -517,6 +538,8 @@ function mostrarApp() {
             document.getElementById('username').value = '';
             document.getElementById('password').value = '';
             document.getElementById('errorMensaje').textContent = ''; // Limpiar mensaje de error
+          
+           document.querySelector('.login-container').classList.remove('oculto'); // Añade esta línea
         }
       
       // Función para mostrar el formulario de login
