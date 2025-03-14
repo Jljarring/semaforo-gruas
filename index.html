@@ -1,4 +1,14 @@
 <!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>ESTADO DE EQUIPOS RTGS</title>
+  <link rel="stylesheet" href="./style.css">
+
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<!DOCTYPE html>
 <html lang="es">
 <head>
     
@@ -438,7 +448,7 @@
 <body>
   
   <!-- Menú desplegable -->
-<div class="menu-desplegable">
+<div class="menu-desplegable" id="menuDesplegable">
     <div class="menu-item">
         <button class="boton-menu">GRÚAS</button>
         <div class="contenido-menu">
@@ -684,6 +694,7 @@ function mostrarApp() {
     document.getElementById("navbar").style.display = 'block';
       document.getElementById('mostrarEstadisticas').style.display = 'block'; // Agregar esta línea
    document.querySelector('.login-container').classList.add('oculto'); // Añade esta línea
+  
     cargarEstados();
 }
 
@@ -692,7 +703,7 @@ function mostrarApp() {
         if (usuario) {
             document.getElementById("usuarioNombre").textContent = usuario;
             document.getElementById("navbar").style.display = "block";
-           
+           document.getElementById('menuDesplegable').style.display = 'none';
             mostrarApp(); // Llamar a mostrarApp() para cargar la aplicación si hay usuario
         } else {
             document.getElementById("navbar").style.display = "none";
@@ -704,7 +715,9 @@ function mostrarApp() {
       
       function toggleMenu() {
     const menu = document.getElementById('dropdown-menu');
+          
     menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        document.getElementById('dropdown-menu').classList.toggle('hidden');
 }
 
   
@@ -713,7 +726,7 @@ function mostrarApp() {
             localStorage.removeItem('usuario');
             document.getElementById('login').style.display = 'block';
             document.getElementById('app').style.display = 'none';
-	        
+	        document.getElementById('menuDesplegable').style.display = 'none';
            document.getElementById('tablaSemaforos').style.display = 'none'; // Agregar esta línea
            document.getElementById('dropdown-menu').style.display = 'none';
           document.getElementById('mostrarEstadisticas').style.display = 'none'; // Agregar esta línea     
@@ -898,9 +911,7 @@ document.getElementById('grabarOperadores').addEventListener('click', () => {
     });
     document.getElementById('modalOperadores').style.display = 'none';
 });
- 
-         
-      
+    
       function generarReporteOperadoresExcel() {
     const wb = XLSX.utils.book_new();
     const wsData = [["Grúa", "Estado", "Operador", "Bloque"]];
@@ -942,10 +953,7 @@ document.getElementById('grabarOperadores').addEventListener('click', () => {
                 }
             });
 
-
-
-
-            contenedor.addEventListener('click', (e) => {
+           contenedor.addEventListener('click', (e) => {
                 if (e.target.classList.contains('grua')) {
                     const gruas = document.querySelectorAll('.grua');
                     gruas.forEach(grua => grua.classList.remove('seleccionada'));
@@ -1153,9 +1161,11 @@ document.getElementById('grabarOperadores').addEventListener('click', () => {
             document.getElementById('totalAzul').textContent = estados.blue;
         }
 
-
-			
-    </script>
+</script>
+</body>
+</html>
+<!-- partial -->
+  <script  src="./script.js"></script>
 
 </body>
 </html>
