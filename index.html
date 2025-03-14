@@ -258,7 +258,80 @@
       .oculto {
     display: none;
 }
-		
+#modalOperadores {
+    display: none; /* O block si quieres que se muestre inicialmente */
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4); /* Fondo semi-transparente oscuro */
+}
+
+#modalOperadores .modal-contenido {
+    background-color: #fefefe; /* Cambia el color de fondo a un tono más claro */
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+}
+
+#tablaOperadores {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+#tablaOperadores th, #tablaOperadores td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+   color: #333; /* Cambia el color del texto a un tono más oscuro */
+}
+
+#tablaOperadores th {
+    background-color: #f2f2f2;
+}
+      
+      
+      /* Añade estilos adicionales para mejorar el contraste del texto */
+#modalOperadores h2 {
+    color: #333; /* Cambia el color del título */
+}
+
+#modalOperadores input,
+#modalOperadores select {
+    color: #333; /* Cambia el color del texto en los campos de entrada */
+}
+      
+      
+      #modalReporteOperadores .modal-contenido {
+    width: 80%;
+    max-width: 800px;
+    height: 200vh; /* Ajusta la altura según sea necesario */
+    overflow-y: auto; /* Permite el scroll vertical si el contenido es largo */
+        color: #333; /* Cambia el color del texto en los campos de entrada */
+}
+      
+      #tablaReporteOperadores {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+#tablaReporteOperadores th, #tablaReporteOperadores td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+#tablaReporteOperadores th {
+    background-color: #f2f2f2;
+}
+
+      
   
 .tabla-semaforo {
     width: auto; /* Ajustar el ancho automáticamente */
@@ -300,12 +373,91 @@
             margin: 20px auto; /* Centrar el contenido */
             text-align: center; /* Asegura que el contenido interno también se centre */
         }
+      
+      .menu-desplegable {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 10px;
+}
+
+.menu-item {
+    position: relative;
+}
+
+.boton-menu {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 5px;
+}
+
+.boton-menu:hover {
+    background-color: #0056b3;
+}
+
+.contenido-menu {
+    display: none;
+    position: absolute;
+    background-color: white;
+    border: 1px solid #ccc;
+    min-width: 180px;
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+}
+
+.contenido-menu a {
+    display: block;
+    padding: 10px;
+    color: black;
+    text-decoration: none;
+}
+
+.contenido-menu a:hover {
+    background-color: #f1f1f1;
+}
+
+.menu-item:hover .contenido-menu {
+    display: block;
+}
     </style>
 	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
+
+  </head>
+
+  
 <body>
+  
+  <!-- Menú desplegable -->
+<div class="menu-desplegable">
+    <div class="menu-item">
+        <button class="boton-menu">GRÚAS</button>
+        <div class="contenido-menu">
+            <a href="#" id="agregarGrua">Añadir grúa</a>
+            <a href="#" id="eliminarGrua">Eliminar grúa</a>
+           <a href="#" id="mostrarEstadisticas">Gráfico</a>
+        </div>
+    </div>
+
+    <div class="menu-item">
+        <button class="boton-menu">OPERADORES</button>
+        <div class="contenido-menu">
+            <a href="#" id="operadoresGrua">Añadir Operadores</a>
+            <a href="#" id="reporteOperadores">Mostrar Reporte</a>
+            <a href="#" id="reporteOperadoresPDF">Generar PDF</a>
+            <a href="#" id="reporteOperadoresExcel">Exportar Excel</a>
+        </div>
+    </div>
+</div>
 
   <div id="navbar" class="navbar">
     <!-- Sección izquierda: Logo y título -->
@@ -333,10 +485,49 @@
 </div>
 
 
-    <button class="boton-flotante-estadisticas" id="mostrarEstadisticas"></button>
+    
   
+<div id="modalOperadores" class="modal">
+    <div class="modal-contenido">
+        <span class="cerrar-modal" id="cerrarModalOperadores">&times;</span>
+        <h2>Operadores de Grúas</h2>
+        <table id="tablaOperadores">
+            <thead>
+                <tr>
+                    <th>Grúa</th>
+                    <th>Estado</th>
+                    <th>Operador</th>
+                    <th>Bloque</th>
+                </tr>
+            </thead>
+            <tbody>
+                </tbody>
+        </table>
+        <button id="grabarOperadores">Grabar</button>
+    </div>
+</div>
 
 
+<div id="modalReporteOperadores" class="modal">
+    <div class="modal-contenido">
+        <span class="cerrar-modal" id="cerrarModalReporteOperadores">&times;</span>
+        <h2>Reporte de Operadores de Grúas</h2>
+        <table id="tablaReporteOperadores">
+            <thead>
+                <tr>
+                    <th>Grúa</th>
+                    <th>Estado</th>
+                    <th>Operador</th>
+                    <th>Bloque</th>
+                </tr>
+            </thead>
+            <tbody>
+                </tbody>
+        </table>
+    </div>
+</div>
+  
+  
 
 
 
@@ -368,10 +559,7 @@
         </div>
         <h2>Distribución de Grúas</h2>
         <div class="contenedor"></div>
-        <div class="boton-flotante">
-            <button id="agregarGrua">+</button>
-            <button id="eliminarGrua">-</button>
-        </div>
+        
     </div>
 	
     <table class="tabla-semaforo" id="tablaSemaforos">
@@ -421,7 +609,7 @@
     if (localStorage.getItem('usuario')) {
         mostrarApp();
     } else {
-        document.getElementById('mostrarEstadisticas').style.display = 'none';
+       
         document.getElementById('tablaSemaforos').style.display = 'none';
     }
 };
@@ -486,16 +674,15 @@
 
             modalEstadisticas.style.display = 'block';
         }
-
 	    
 function mostrarApp() {
     document.getElementById('login').style.display = 'none';
     document.getElementById('app').style.display = 'block';
     document.getElementById('usuarioInfo').style.display = 'flex';
     document.getElementById('usuarioNombre').textContent = localStorage.getItem('usuario');
-    document.getElementById('mostrarEstadisticas').style.display = 'block';
-    document.getElementById('tablaSemaforos').style.display = 'table';
+     document.getElementById('tablaSemaforos').style.display = 'table';
     document.getElementById("navbar").style.display = 'block';
+      document.getElementById('mostrarEstadisticas').style.display = 'block'; // Agregar esta línea
    document.querySelector('.login-container').classList.add('oculto'); // Añade esta línea
     cargarEstados();
 }
@@ -505,9 +692,11 @@ function mostrarApp() {
         if (usuario) {
             document.getElementById("usuarioNombre").textContent = usuario;
             document.getElementById("navbar").style.display = "block";
+           
             mostrarApp(); // Llamar a mostrarApp() para cargar la aplicación si hay usuario
         } else {
             document.getElementById("navbar").style.display = "none";
+           
             mostrarFormularioLogin();
         }
 
@@ -524,10 +713,10 @@ function mostrarApp() {
             localStorage.removeItem('usuario');
             document.getElementById('login').style.display = 'block';
             document.getElementById('app').style.display = 'none';
-	         document.getElementById('mostrarEstadisticas').style.display = 'none'; // Agregar esta línea
+	        
            document.getElementById('tablaSemaforos').style.display = 'none'; // Agregar esta línea
-           document.getElementById('dropdown-menu').style.display = 'block';
-              
+           document.getElementById('dropdown-menu').style.display = 'none';
+          document.getElementById('mostrarEstadisticas').style.display = 'none'; // Agregar esta línea     
           document.getElementById("navbar").style.display = "none"; // Ocultar navbar
           mostrarFormularioLogin(); // Mostrar formulario de login en la misma página
               // Limpiar la tabla
@@ -547,7 +736,7 @@ function mostrarFormularioLogin() {
     document.getElementById("login").style.display = "block";
 }
 
-        function abrirVentanaEmergente() {
+ function abrirVentanaEmergente() {
             const numeroGrua = prompt("Ingrese el número de la grúa:");
             if (numeroGrua) {
                 agregarGrua(numeroGrua);
@@ -567,6 +756,176 @@ function mostrarFormularioLogin() {
         }
 		
 
+      function mostrarModalOperadores() {
+    const modal = document.getElementById('modalOperadores');
+    modal.style.display = 'block';
+    llenarTablaOperadores();
+}
+      
+function llenarTablaOperadores() {
+    const tablaBody = document.querySelector('#tablaOperadores tbody');
+    tablaBody.innerHTML = ''; // Limpiar la tabla
+
+    database.ref('/').once('value', snapshot => {
+        snapshot.forEach(childSnapshot => {
+            const gruaId = childSnapshot.key;
+            if (gruaId.startsWith('grua')) {
+                const grua = childSnapshot.val();
+                const fila = document.createElement('tr');
+                fila.innerHTML = `
+                    <td>${grua.numero || gruaId.replace('grua', '')}</td>
+                    <td>
+                        <select data-grua-id="${gruaId}" data-campo="estado">
+                            <option value="green" ${grua.estado === 'green' ? 'selected' : ''}>Operativa</option>
+                            <option value="blue" ${grua.estado === 'blue' ? 'selected' : ''}>Standby</option>
+                            <option value="red" ${grua.estado === 'red' ? 'selected' : ''}>Mantenimiento</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="text" value="${grua.operador || ''}" data-grua-id="${gruaId}" data-campo="operador">
+                    </td>
+                    <td>
+                        <input type="text" value="${grua.bloque || ''}" data-grua-id="${gruaId}" data-campo="bloque">
+                    </td>
+                `;
+                tablaBody.appendChild(fila);
+            }
+        });
+    });
+}
+      
+    function generarReporteOperadores() {
+    const tablaBody = document.querySelector('#tablaReporteOperadores tbody');
+    tablaBody.innerHTML = ''; // Limpiar la tabla
+
+    database.ref('/').once('value', snapshot => {
+        const gruas = [];
+        snapshot.forEach(childSnapshot => {
+            const gruaId = childSnapshot.key;
+            if (gruaId.startsWith('grua')) {
+                const grua = childSnapshot.val();
+                gruas.push({
+                    id: gruaId,
+                    numero: grua.numero || gruaId.replace('grua', ''),
+                    estado: grua.estado,
+                    operador: grua.operador || 'N/A',
+                    bloque: grua.bloque || 'N/A'
+                });
+            }
+        });
+
+        // Ordenar las grúas por número de grúa
+        gruas.sort((a, b) => {
+            return parseInt(a.numero) - parseInt(b.numero);
+        });
+
+        gruas.forEach(grua => {
+            let estadoTexto = '';
+            switch (grua.estado) {
+                case 'red':
+                    estadoTexto = 'Mantenimiento';
+                    break;
+                case 'blue':
+                    estadoTexto = 'Standby';
+                    break;
+                case 'green':
+                    estadoTexto = 'Operativa';
+                    break;
+                default:
+                    estadoTexto = 'Desconocido';
+            }
+
+            const fila = document.createElement('tr');
+            fila.innerHTML = `
+                <td>${grua.numero}</td>
+                <td>${estadoTexto}</td>
+                <td>${grua.operador}</td>
+                <td>${grua.bloque}</td>
+            `;
+            tablaBody.appendChild(fila);
+        });
+
+        document.getElementById('modalReporteOperadores').style.display = 'block';
+    });
+}
+      
+
+      
+      
+      
+      document.getElementById('reporteOperadores').addEventListener('click', generarReporteOperadores);
+      document.getElementById('cerrarModalReporteOperadores').addEventListener('click', () => {
+    document.getElementById('modalReporteOperadores').style.display = 'none';
+});
+     
+      document.addEventListener("DOMContentLoaded", function () {
+    document.getElementById("agregarGrua").addEventListener("click", function (event) {
+        event.preventDefault();
+        abrirVentanaEmergente();
+    });
+
+
+    document.getElementById("operadoresGrua").addEventListener("click", function (event) {
+        event.preventDefault();
+        mostrarModalOperadores();
+    });
+
+    document.getElementById("reporteOperadores").addEventListener("click", function (event) {
+        event.preventDefault();
+        generarReporteOperadores();
+    });
+
+
+    document.getElementById("reporteOperadoresExcel").addEventListener("click", function (event) {
+        event.preventDefault();
+        generarReporteOperadoresExcel();
+    });
+});
+
+      
+      
+function actualizarEstado(select, gruaId) {
+    const estado = select.value;
+    database.ref(gruaId).update({ estado: estado });
+}
+document.getElementById('grabarOperadores').addEventListener('click', () => {
+    const inputs = document.querySelectorAll('#tablaOperadores input, #tablaOperadores select');
+    inputs.forEach(input => {
+        const gruaId = input.dataset.gruaId;
+        const campo = input.dataset.campo;
+        const valor = input.value;
+        database.ref(gruaId).update({ [campo]: valor });
+    });
+    document.getElementById('modalOperadores').style.display = 'none';
+});
+ 
+         
+      
+      function generarReporteOperadoresExcel() {
+    const wb = XLSX.utils.book_new();
+    const wsData = [["Grúa", "Estado", "Operador", "Bloque"]];
+
+    database.ref('/').once('value', snapshot => {
+        snapshot.forEach(childSnapshot => {
+            const gruaId = childSnapshot.key;
+            if (gruaId.startsWith('grua')) {
+                const grua = childSnapshot.val();
+                wsData.push([
+                    grua.numero || gruaId.replace('grua', ''),
+                    grua.estado,
+                    grua.operador || 'N/A',
+                    grua.bloque || 'N/A'
+                ]);
+            }
+        });
+
+        const ws = XLSX.utils.aoa_to_sheet(wsData);
+        XLSX.utils.book_append_sheet(wb, ws, "Operadores");
+        XLSX.writeFile(wb, "reporte_operadores.xlsx");
+    });
+}
+      
+  
 
         function cargarEstados() {
             const contenedor = document.querySelector('.contenedor');
@@ -584,17 +943,7 @@ function mostrarFormularioLogin() {
             });
 
 
-            document.getElementById('agregarGrua').onclick = function() {
-                abrirVentanaEmergente();
-            };
 
-            document.getElementById('eliminarGrua').onclick = function() {
-                const gruaSeleccionada = document.querySelector('.grua.seleccionada');
-                if (gruaSeleccionada) {
-                    database.ref(gruaSeleccionada.id).remove();
-                    gruaSeleccionada.remove();
-                }
-            };
 
             contenedor.addEventListener('click', (e) => {
                 if (e.target.classList.contains('grua')) {
