@@ -165,10 +165,7 @@
             background-color: #0056b3;
         }
 
-      
-      
-      
-      
+       
       
         #login p#errorMensaje {
             margin-top: 10px;
@@ -381,58 +378,63 @@
             width: 90%; /* Ajusta el ancho según tus necesidades */
             max-width: 1200px; /* Ancho máximo para pantallas grandes */
             margin: 20px auto; /* Centrar el contenido */
-            text-align: center; /* Asegura que el contenido interno también se centre */
+            text-align: left; /* Asegura que el contenido interno también se centre */
         }
       
-      .menu-desplegable {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    margin-top: 10px;
-}
-
-.menu-item {
-    position: relative;
-}
-
-.boton-menu {
-    background-color: #007bff;
-    color: white;
-    padding: 10px 15px;
-    border: none;
-    cursor: pointer;
-    font-size: 16px;
-    border-radius: 5px;
-}
-
-.boton-menu:hover {
-    background-color: #0056b3;
-}
-
-.contenido-menu {
-    display: none;
-    position: absolute;
-    background-color: white;
-    border: 1px solid #ccc;
-    min-width: 180px;
-    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
-    z-index: 1;
-}
-
-.contenido-menu a {
-    display: block;
-    padding: 10px;
-    color: black;
-    text-decoration: none;
-}
-
-.contenido-menu a:hover {
-    background-color: #f1f1f1;
-}
-
-.menu-item:hover .contenido-menu {
-    display: block;
-}
+  .menu-desplegable {
+            display: none;
+            background-color: white;
+            color: black;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 220px;
+            position: absolute;
+            top: 100%;
+            left: 10px;
+            margin-top: 10px;
+           }
+        .menu-item {
+            margin-bottom: 10px;
+        }
+        .boton-menu {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: left;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 5px;
+          
+          
+        }
+        .contenido-menu {
+            display: none;
+            background-color: #f1f1f1;
+            padding: 10px;
+            border-radius: 4px;
+            flex-direction: column;
+        }
+        .contenido-menu a {
+            display: block;
+            background-color: #e0e0e0;
+            padding: 8px;
+            margin: 4px 0;
+            border-radius: 4px;
+            text-align: center;
+            text-decoration: none;
+            color: black;
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .contenido-menu a:hover {
+            background-color: #d6d6d6;
+        }
+        .menu-item:hover .contenido-menu {
+            display: flex;
+        }
     </style>
 	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
@@ -694,7 +696,7 @@ function mostrarApp() {
     document.getElementById("navbar").style.display = 'block';
       document.getElementById('mostrarEstadisticas').style.display = 'block'; // Agregar esta línea
    document.querySelector('.login-container').classList.add('oculto'); // Añade esta línea
-  
+  document.getElementById('menuDesplegable').style.display = 'block';
     cargarEstados();
 }
 
@@ -703,7 +705,7 @@ function mostrarApp() {
         if (usuario) {
             document.getElementById("usuarioNombre").textContent = usuario;
             document.getElementById("navbar").style.display = "block";
-           document.getElementById('menuDesplegable').style.display = 'none';
+     
             mostrarApp(); // Llamar a mostrarApp() para cargar la aplicación si hay usuario
         } else {
             document.getElementById("navbar").style.display = "none";
@@ -911,7 +913,9 @@ document.getElementById('grabarOperadores').addEventListener('click', () => {
     });
     document.getElementById('modalOperadores').style.display = 'none';
 });
-    
+ 
+         
+      
       function generarReporteOperadoresExcel() {
     const wb = XLSX.utils.book_new();
     const wsData = [["Grúa", "Estado", "Operador", "Bloque"]];
@@ -953,7 +957,10 @@ document.getElementById('grabarOperadores').addEventListener('click', () => {
                 }
             });
 
-           contenedor.addEventListener('click', (e) => {
+
+
+
+            contenedor.addEventListener('click', (e) => {
                 if (e.target.classList.contains('grua')) {
                     const gruas = document.querySelectorAll('.grua');
                     gruas.forEach(grua => grua.classList.remove('seleccionada'));
@@ -1161,7 +1168,10 @@ document.getElementById('grabarOperadores').addEventListener('click', () => {
             document.getElementById('totalAzul').textContent = estados.blue;
         }
 
-</script>
+
+			
+    </script>
+
 </body>
 </html>
 <!-- partial -->
