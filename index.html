@@ -889,6 +889,39 @@ function llenarTablaOperadores() {
 }
       
 
+
+	    async function actualizarOperadoresYEstados() {
+    const inputs = document.querySelectorAll('#tablaOperadores input, #tablaOperadores select');
+    const actualizaciones = {};
+
+    inputs.forEach(input => {
+        const gruaId = input.dataset.gruaId;
+        const campo = input.dataset.campo;
+        const valor = input.value;
+
+        if (!actualizaciones[gruaId]) {
+            actualizaciones[gruaId] = {};
+        }
+        actualizaciones[gruaId][campo] = valor;
+    });
+
+    try {
+        const promises = Object.entries(actualizaciones).map(([gruaId, cambios]) => {
+            return database.ref(gruaId).update(cambios);
+        });
+
+        await Promise.all(promises);
+        console.log("Datos de operadores y estados actualizados correctamente.");
+        alert("Datos de operadores y estados actualizados correctamente.");
+        document.getElementById('modalOperadores').style.display = 'none';
+    } catch (error) {
+        console.error("Error al actualizar los datos de los operadores y estados:", error);
+        alert("Error al actualizar los datos de los operadores y estados. Por favor, inténtalo de nuevo.");
+    }
+}
+
+document.getElementById('grabarOperadores').addEventListener('click', actualizarOperadoresYEstados);
+
       
       
       
@@ -934,7 +967,7 @@ document.getElementById('grabarOperadores').addEventListener('click', () => {
         const campo = input.dataset.campo;
         const valor = input.value;
         database.ref(gruaId).update({ [campo]: valor });
-	    actualizarEstado();
+	    
     });
     document.getElementById('modalOperadores').style.display = 'none';
 });
