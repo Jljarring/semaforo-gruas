@@ -9,6 +9,16 @@
 <body>
 <!-- partial:index.partial.html -->
 <!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>ESTADO DE EQUIPOS RTGS</title>
+  <link rel="stylesheet" href="./style.css">
+
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<!DOCTYPE html>
 <html lang="es">
 <head>
     
@@ -23,6 +33,14 @@
             text-align: center;
             font-family: Arial, sans-serif;
         }
+      .tooltip {
+    background-color: black !important;
+    color: white;
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    z-index: 1000;
+}
 
         /* Barra de navegación */
         .navbar {
@@ -65,7 +83,7 @@
         /* Derecha: Usuario */
         .navbar-right {          
             position: absolute;
-            left: 90%;
+            left: 93%;
             
            transform: translateY(-50%);
             font-size: 20px;
@@ -435,6 +453,19 @@
         .menu-item:hover .contenido-menu {
             display: flex;
         }
+          const style = document.createElement('style');
+    style.textContent = `
+        .tooltip {
+            background-color: red;
+            border: 1px solid black;
+            padding: 5px;
+            z-index: 1000;
+        }
+    `;
+    document.head.appendChild(style);
+}
+      
+
     </style>
 	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
@@ -699,7 +730,7 @@ function mostrarApp() {
             mostrarApp(); // Llamar a mostrarApp() para cargar la aplicación si hay usuario
         } else {
             document.getElementById("navbar").style.display = "none";
-           document.getElementById('tablaSemaforos').style.display = 'none'; // Agregar esta línea
+           document.getElementById('tablaSemaforos').style.display = 'none';
             mostrarFormularioLogin();
         }
 
@@ -725,6 +756,7 @@ function mostrarApp() {
            document.getElementById('dropdown-menu').style.display = 'none';
           document.getElementById('mostrarEstadisticas').style.display = 'none'; // Agregar esta línea     
           document.getElementById("navbar").style.display = "none"; // Ocultar navbar
+           document.getElementById('tablaSemaforos').style.display = 'none';
           mostrarFormularioLogin(); // Mostrar formulario de login en la misma página
               // Limpiar la tabla
           const tablaBody = document.querySelector('#tablaSemaforos tbody');               
@@ -949,7 +981,27 @@ document.getElementById('grabarOperadores').addEventListener('click', () => {
                 }
             });
 
+  contenedor.addEventListener('mouseover', (e) => {
+        if (e.target.classList.contains('grua')) {
+            const grua = e.target;
+            const operador = grua.dataset.operador;
+            const bloque = grua.dataset.bloque;
 
+            const tooltip = document.createElement('div');
+            tooltip.classList.add('tooltip');
+            tooltip.textContent = `Operador: ${operador}, Bloque: ${bloque}`;
+
+            tooltip.style.position = 'absolute';
+            tooltip.style.left = (grua.offsetLeft + grua.offsetWidth + 10) + 'px';
+            tooltip.style.top = grua.offsetTop + 'px';
+
+            contenedor.appendChild(tooltip);
+
+            grua.addEventListener('mouseout', () => {
+                tooltip.remove();
+            }, { once: true });
+        }
+    });
 
 
             contenedor.addEventListener('click', (e) => {
@@ -988,25 +1040,10 @@ document.getElementById('grabarOperadores').addEventListener('click', () => {
         }
     });
 
-
-            database.ref('/').on('child_changed', snapshot => {
+ 	        database.ref('/').on('child_added', snapshot => {
                 const gruaId = snapshot.key;
                 if (gruaId.startsWith('grua')) {
-                    const { estado, top, left } = snapshot.val();
-                    const gruaElemento = document.getElementById(gruaId);
-                    if (gruaElemento) {
-                        gruaElemento.style.top = top + 'px';
-                        gruaElemento.style.left = left + 'px';
-                        gruaElemento.style.backgroundColor = estado || 'green';
-                        actualizarTablaSemaforos(); // Actualizar la tabla después de un cambio
-                    }
-                }
-            });
-
-	        database.ref('/').on('child_added', snapshot => {
-                const gruaId = snapshot.key;
-                if (gruaId.startsWith('grua')) {
-                    const { estado, top, left, numero } = snapshot.val();
+                    const { estado, top, left, numero, operador, bloque } = snapshot.val();
 
                     const gruaElemento = document.createElement('div');
                     gruaElemento.id = gruaId;
@@ -1015,10 +1052,42 @@ document.getElementById('grabarOperadores').addEventListener('click', () => {
                     gruaElemento.style.left = left + 'px';
                     gruaElemento.textContent = numero || gruaId.replace('grua', '');
                     gruaElemento.style.backgroundColor = estado || 'green';
+                    gruaElemento.dataset.operador = operador || 'N/A'; // Agrega atributos de datos
+                    gruaElemento.dataset.bloque = bloque || 'N/A';
                     actualizarTablaSemaforos(); // Actualizar la tabla después de un cambio
                     let offsetX, offsetY, moviendo = false;
                     let toqueCount = 0;
+ // Agregar tooltip
+        gruaElemento.addEventListener('mouseover', (e) => {
+              let operador = gruaElemento.dataset.operador;
+    let bloque = gruaElemento.dataset.bloque;
 
+    if (operador) {
+        operador = operador.replace(',', ''); // Elimina la coma
+    }
+
+    if (bloque) {
+        bloque = bloque.replace(',', ''); // Elimina la coma
+    }   
+          
+    const tooltip = document.createElement('div');
+    tooltip.classList.add('tooltip');
+    tooltip.innerHTML = `
+        <div style="text-align: center;">
+            <span>Operador: ${gruaElemento.dataset.operador}</span><br>
+            <span>Bloque: ${gruaElemento.dataset.bloque}</span>
+        </div>
+    `;
+            tooltip.style.position = 'flex';
+            tooltip.style.left = (gruaElemento.offsetLeft + gruaElemento.offsetWidth + 10) + 'px';
+            tooltip.style.top = gruaElemento.offsetTop + 'px';
+
+            gruaElemento.parentElement.appendChild(tooltip);
+
+            gruaElemento.addEventListener('mouseout', () => {
+                tooltip.remove();
+            }, { once: true });
+        });
 
 
 			gruaElemento.addEventListener('mousedown', (e) => {
@@ -1159,8 +1228,15 @@ document.getElementById('grabarOperadores').addEventListener('click', () => {
             document.getElementById('totalVerde').textContent = estados.green;
             document.getElementById('totalAzul').textContent = estados.blue;
         }
-		
+
+
+			
     </script>
+
+</body>
+</html>
+<!-- partial -->
+  <script  src="./script.js"></script>
 
 </body>
 </html>
