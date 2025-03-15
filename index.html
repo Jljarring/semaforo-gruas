@@ -614,17 +614,7 @@
         const database = firebase.database();
 
         // Verificar si hay sesión activa
-    window.onload = function() {
-    const tablaBody = document.querySelector('#tablaSemaforos tbody');
-    tablaBody.innerHTML = '';
 
-    if (localStorage.getItem('usuario')) {
-        mostrarApp();
-    } else {
-       
-        document.getElementById('tablaSemaforos').style.display = 'none';
-    }
-};
 
         function iniciarSesion() {
             const username = document.getElementById('username').value;
@@ -714,6 +704,8 @@ function mostrarApp() {
         }
 
 });
+      
+  
       
       function toggleMenu() {
     const menu = document.getElementById('dropdown-menu');
@@ -1167,9 +1159,7 @@ document.getElementById('grabarOperadores').addEventListener('click', () => {
             document.getElementById('totalVerde').textContent = estados.green;
             document.getElementById('totalAzul').textContent = estados.blue;
         }
-
-
-			
+		
     </script>
 
 </body>
