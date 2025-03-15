@@ -699,7 +699,7 @@ function mostrarApp() {
             mostrarApp(); // Llamar a mostrarApp() para cargar la aplicación si hay usuario
         } else {
             document.getElementById("navbar").style.display = "none";
-           
+           document.getElementById('tablaSemaforos').style.display = 'none'; // Agregar esta línea
             mostrarFormularioLogin();
         }
 
