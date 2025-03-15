@@ -934,6 +934,7 @@ document.getElementById('grabarOperadores').addEventListener('click', () => {
         const campo = input.dataset.campo;
         const valor = input.value;
         database.ref(gruaId).update({ [campo]: valor });
+	    actualizarEstado();
     });
     document.getElementById('modalOperadores').style.display = 'none';
 });
