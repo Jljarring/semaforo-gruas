@@ -83,6 +83,41 @@
 
 <body>
 
+    <script>
+        // Verificar si el usuario está autenticado
+        if (!localStorage.getItem('usuario')) {
+            window.location.href = '/semaforo-gruas/'; // Redirigir a la página de inicio de sesión
+        }
+
+        let temporizadorInactividad;
+        const tiempoInactividad = 600000; // 10 minutos (en milisegundos)
+
+        function cerrarSesionPorInactividad() {
+            alert("Sesión cerrada por inactividad.");
+            logout();
+        }
+
+        function reiniciarTemporizador() {
+            clearTimeout(temporizadorInactividad);
+            temporizadorInactividad = setTimeout(cerrarSesionPorInactividad, tiempoInactividad);
+        }
+
+        // Inicializar el temporizador al cargar la página
+        reiniciarTemporizador();
+
+        // Reiniciar el temporizador en cada interacción del usuario
+        document.addEventListener('mousemove', reiniciarTemporizador);
+        document.addEventListener('keypress', reiniciarTemporizador);
+        document.addEventListener('click', reiniciarTemporizador);
+
+        function logout() {
+            alert("Cerrando sesión...");
+            localStorage.removeItem('usuario');
+            window.location.href = '/semaforo-gruas/'; // Redirigir a la página de inicio de sesión
+        }
+    </script>
+
+    
     <div class="container py-5">
         <div class="row justify-content-center">
             <div class="col-md-8 col-lg-6">
