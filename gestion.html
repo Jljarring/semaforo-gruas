@@ -85,8 +85,8 @@
 
     <script>
         // Verificar si el usuario está autenticado
-        if (!localStorage.getItem('usuario')) {
-            window.location.href = '/semaforo-gruas/'; // Redirigir a la página de inicio de sesión
+        if (!localStorage.getItem('invitado')) {
+            window.location.href = '/semaforo-gruas/gestion.html'; // Redirigir a la página de inicio de sesión
         }
 
         let temporizadorInactividad;
@@ -112,7 +112,7 @@
 
         function logout() {
             alert("Cerrando sesión...");
-            localStorage.removeItem('usuario');
+            localStorage.removeItem('invitado');
             window.location.href = '/semaforo-gruas/'; // Redirigir a la página de inicio de sesión
         }
     </script>
