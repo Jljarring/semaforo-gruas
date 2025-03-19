@@ -79,19 +79,83 @@
             max-width: 100%;
             overflow-x: auto;
         }
+     .navbar {
+    background-color: #333; /* Color de fondo */
+    color: white; /* Color del texto */
+    display: flex; /* Usar flexbox para el diseño */
+    justify-content: space-between; /* Espaciar las secciones */
+    align-items: center; /* Alinear verticalmente */
+    padding: 10px 20px; /* Espacio interno */
+}
+
+.navbar-left, .navbar-center, .navbar-right {
+    display: flex; /* Usar flexbox para las secciones */
+    align-items: center; /* Alinear verticalmente */
+}
+
+.navbar-heading {
+    font-size: 1.2em; /* Tamaño del título */
+    margin: 0; /* Eliminar márgenes */
+}
+
+.user-menu {
+    position: relative; /* Para posicionar el menú desplegable */
+}
+
+.username {
+    cursor: pointer; /* Cambiar el cursor al pasar por encima */
+}
+
+.dropdown-menu {
+    position: absolute; /* Posicionar el menú desplegable */
+    top: 100%; /* Colocar debajo del nombre de usuario */
+    right: 0; /* Alinear a la derecha */
+    background-color: white; /* Fondo blanco */
+    border: 1px solid #ccc; /* Borde */
+    padding: 5px; /* Espacio interno */
+    display: none; /* Ocultar inicialmente */
+}
+
+.dropdown-menu a {
+    display: block; /* Mostrar como bloque para ocupar todo el ancho */
+    padding: 5px 10px; /* Espacio interno */
+    color: #333; /* Color del texto */
+    text-decoration: none; /* Eliminar subrayado */
+}
+
+.dropdown-menu a:hover {
+    background-color: #f0f0f0; /* Cambiar el fondo al pasar por encima */
+}
+
+.dropdown-menu.show {
+    display: block; /* Mostrar el menú desplegable */
+}
     </style>
   
 </head>
 
 <body>
 
-    <script>
-       
+<div id="navbar" class="navbar">
+    <div class="navbar-left">
+        <span class="navbar-heading">Desarrollo Independiente JJLG</span>
+    </div>
 
-        // ... (resto de tu código en gestion.html) ...
+    <div class="navbar-center">
+        <span class="navbar-heading"></span> </div>
 
-
-    </script>
+    <div class="navbar-right">
+        <div class="user-menu">
+            <span class="username" onclick="toggleMenu()">
+                <i class="fas fa-user"></i>
+                <span id="usuarioNombre">invitado</span> ▼
+            </span>
+            <div id="dropdown-menu" class="dropdown-menu">
+                <a href="#" onclick="logout()">Cerrar sesión</a>
+            </div>
+        </div>
+    </div>
+</div>
 
     
     <div class="container py-5">
@@ -133,6 +197,11 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+
+     function toggleMenu() {
+    const menu = document.getElementById('dropdown-menu');
+    menu.classList.toggle('show');
+}
 
            // Verificar si el usuario está autenticado o es invitado
         if (!localStorage.getItem('usuario') && localStorage.getItem('usuario') !== 'invitado') {
