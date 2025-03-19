@@ -133,14 +133,17 @@
 
     <script>
 
-         // Verificar si el usuario está autenticado o es invitado
+           // Verificar si el usuario está autenticado o es invitado
         if (!localStorage.getItem('usuario') && localStorage.getItem('usuario') !== 'invitado') {
             window.location.href = '/semaforo-gruas/'; // Redirigir a la página de inicio de sesión
         }
-         // Cerrar sesión y redirigir al formulario de inicio de sesión en index.html al presionar el botón "Atrás"
+
+        // Cerrar sesión y redirigir a index.html al presionar el botón "Atrás"
         window.addEventListener('popstate', function (event) {
-            logout();
+            localStorage.removeItem('usuario'); // Limpiar la sesión
+            window.location.href = '/semaforo-gruas/'; // Redirigir a index.html
         });
+
         
         let datosPATIO = [];
         let datosDESPACHO = [];
