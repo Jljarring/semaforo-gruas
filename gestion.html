@@ -168,7 +168,7 @@
             resultados.push(encabezados);
 
             for (let i = 1; i < datosDESPACHO.length; i++) {
-                let fecha = datosDESPACHO[i][0] || "Desconocida";
+                let fecha = datosDESPACHO[i][1] || "Desconocida";
                 let contenedor = datosDESPACHO[i][3] || "Sin Datos";
                 let tipo = datosDESPACHO[i][4] || "N/A";
                 let estado = datosDESPACHO[i][5] || "Desconocido";
