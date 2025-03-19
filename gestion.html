@@ -79,6 +79,7 @@
             overflow-x: auto;
         }
     </style>
+    script src="auth.js"></script>
 </head>
 
 <body>
@@ -136,6 +137,10 @@
         if (!localStorage.getItem('usuario') && localStorage.getItem('usuario') !== 'invitado') {
             window.location.href = '/semaforo-gruas/'; // Redirigir a la página de inicio de sesión
         }
+         // Cerrar sesión y redirigir al formulario de inicio de sesión en index.html al presionar el botón "Atrás"
+        window.addEventListener('popstate', function (event) {
+            logout();
+        });
         
         let datosPATIO = [];
         let datosDESPACHO = [];
