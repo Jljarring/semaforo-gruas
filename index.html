@@ -642,6 +642,7 @@
             const password = document.getElementById('password').value;
           if (username === 'invitado' && password === 'invitado') {
                 // Redirigir a gestion.html si es un usuario invitado
+		  localStorage.setItem('usuario', 'invitado');
                 window.location.href = 'gestion.html';
           } else {
             database.ref('usuarios').once('value')
