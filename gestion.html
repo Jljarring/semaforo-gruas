@@ -1,148 +1,300 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Grúas</title>
+    <title>Análisis de Contenedores</title>
+    <!-- Enlace a Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Enlace a DataTables -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.3/xlsx.full.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+  <!-- Enlace a los estilos de DataTables y botones -->
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.3/css/buttons.dataTables.min.css" />
+
+<!-- Enlace a los scripts de DataTables y botones -->
+<script src="https://cdn.datatables.net/buttons/2.3.3/js/dataTables.buttons.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.3.3/js/buttons.html5.min.js"></script>
     <style>
         body {
-            text-align: center;
-            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            font-family: 'Arial', sans-serif;
         }
-        .contenedor {
-            position: relative;
-            display: inline-block;
+
+        h2 {
+            color: #333;
         }
-        .plano {
-            width: 100%;
-            max-width: 1000px;
-        }
-        .grua {
-            position: absolute;
-            width: 50px;
-            height: 45px;
-            background-color: green;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            font-weight: bold;
-            border-radius: 10px;
-            cursor: pointer;
-        }
-        #gestion {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
+
+        .custom-card {
+            background-color: #fff;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             padding: 20px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
-            z-index: 1000;
+            margin-bottom: 20px;
         }
-        #btnGestion {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: blue;
-            color: white;
-            padding: 10px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 18px;
+
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
         }
-        input {
-            margin: 5px;
-            padding: 5px;
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+
+        .table th,
+        .table td {
+            text-align: center;
+        }
+
+        .file-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        /* Evitar el desbordamiento horizontal */
+        .dataTables_wrapper {
+            width: 100%;
+            overflow-x: hidden;
+        }
+
+        table {
+            table-layout: auto;
+            width: 100%;
+        }
+
+        /* Ajustar el contenedor de resultados para que ocupe el 100% de la pantalla */
+        #resultado {
+            margin-top: 40px;
+            max-width: 100%;
+            overflow-x: auto;
         }
     </style>
 </head>
+
 <body>
-    <button id="btnGestion" onclick="mostrarGestion()">+</button>
-    <div id="gestion">
-        <h2>Gestión de Grúas</h2>
-        <label>Número de Grúa:</label>
-        <input type="text" id="numGrua" placeholder="Ejemplo: 12">
-        <label>Posición X:</label>
-        <input type="number" id="posX" placeholder="Ejemplo: 100">
-        <label>Posición Y:</label>
-        <input type="number" id="posY" placeholder="Ejemplo: 50">
-        <button onclick="agregarGrua()">Agregar Grúa</button>
-        <h3>Grúas Registradas</h3>
-        <ul id="listaGruas"></ul>
-        <button onclick="cerrarGestion()">Cerrar</button>
+
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <!-- Card para el formulario -->
+                <div class="custom-card">
+                    <h2 class="text-center mb-4">Movimientos de Contenedores</h2>
+                    
+                    <!-- Inputs de archivos -->
+                    <div class="file-container">
+                        <div class="mb-4">
+                            <label for="inputPATIO" class="form-label">Cargar archivo PATIO (Excel)</label>
+                            <input type="file" id="inputPATIO" accept=".xlsx, .xls" class="form-control">
+                        </div>
+                        <div class="mb-4">
+                            <label for="inputDESPACHO" class="form-label">Cargar archivo DESPACHO (Excel)</label>
+                            <input type="file" id="inputDESPACHO" accept=".xlsx, .xls" class="form-control">
+                        </div>
+                        <div class="text-center">
+                            <button onclick="analizarContenedores()" class="btn btn-primary">Analizar</button>
+                          <button onclick="limpiarDatos()" class="btn btn-danger">Limpiar</button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de la tabla de resultados -->
+        <div class="row">
+            <div class="col-12">
+                <div id="resultado"></div>
+            </div>
+        </div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <!-- Enlace a scripts de Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
     <script>
-        var firebaseConfig = {
-            apiKey: "AIzaSyArPPyaX0NoU2Gkax8bpj5MkWTLMsyZmYQ",
-            authDomain: "estado-de-equipos-rtgs.firebaseapp.com",
-            databaseURL: "https://estado-de-equipos-rtgs-default-rtdb.firebaseio.com",
-            projectId: "estado-de-equipos-rtgs",
-            storageBucket: "estado-de-equipos-rtgs.firebasestorage.app",
-            messagingSenderId: "927929035915",
-            appId: "1:927929035915:web:7c7a5e265d8130e0ac788e",
-            measurementId: "G-MS4NL6Z4L4"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+        let datosPATIO = [];
+        let datosDESPACHO = [];
 
-        function mostrarGestion() {
-            document.getElementById("gestion").style.display = "block";
+        function cargarExcel(event, tipo) {
+            let archivo = event.target.files[0];
+            let lector = new FileReader();
+            lector.onload = function (e) {
+                let data = new Uint8Array(e.target.result);
+                let workbook = XLSX.read(data, { type: 'array' });
+                let sheetName = workbook.SheetNames[0];
+                let sheet = workbook.Sheets[sheetName];
+                let jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+                if (tipo === 'PATIO') {
+                    datosPATIO = jsonData;
+                } else if (tipo === 'DESPACHO') {
+                    datosDESPACHO = jsonData;
+                }
+            };
+            lector.readAsArrayBuffer(archivo);
         }
 
-        function cerrarGestion() {
-            document.getElementById("gestion").style.display = "none";
-        }
+        document.getElementById('inputPATIO').addEventListener('change', (e) => cargarExcel(e, 'PATIO'));
+        document.getElementById('inputDESPACHO').addEventListener('change', (e) => cargarExcel(e, 'DESPACHO'));
 
-        function agregarGrua() {
-            const numGrua = document.getElementById("numGrua").value;
-            const posX = document.getElementById("posX").value;
-            const posY = document.getElementById("posY").value;
-            if (!numGrua || !posX || !posY) {
-                alert("Todos los campos son obligatorios");
+        function analizarContenedores() {
+            if (datosPATIO.length === 0 || datosDESPACHO.length === 0) {
+                alert("Carga ambos archivos antes de analizar.");
                 return;
             }
-            const gruaId = "grua" + numGrua;
-            database.ref(gruaId).set({
-                estado: "green",
-                posX: posX,
-                posY: posY
-            }).then(() => {
-                alert("Grúa agregada correctamente");
-                listarGruas();
-            });
+
+            let indiceUbicaciones = {};
+            for (let i = 1; i < datosPATIO.length; i++) {
+                let contenedor = datosPATIO[i][7];
+                let ubicacion = datosPATIO[i][1];
+                if (contenedor && ubicacion) {
+                    indiceUbicaciones[contenedor] = ubicacion;
+                }
+            }
+
+            let resultados = [];
+            let encabezados = ["Fecha", "Contenedor", "Ubicación Completa", "Tipo", "Estado", "Encontrado en PATIO", "Bloque", "Bahía",
+                "Row", "Tier", "Menor Movimiento", "Lado"];
+            resultados.push(encabezados);
+
+            for (let i = 1; i < datosDESPACHO.length; i++) {
+                let fecha = datosDESPACHO[i][0] || "Desconocida";
+                let contenedor = datosDESPACHO[i][3] || "Sin Datos";
+                let tipo = datosDESPACHO[i][4] || "N/A";
+                let estado = datosDESPACHO[i][5] || "Desconocido";
+                let encontradoEnPATIO = "No Encontrado";
+                let bloque = "N/A", bahia = "N/A", rowContenedor = "N/A", tier = "N/A";
+                let contenedoresEncima = 0;
+                let contenedoresIzquierda = 0;
+                let contenedoresDerecha = 0;
+                let ubicacionCompleta = "N/A";
+
+                if (indiceUbicaciones[contenedor]) {
+                    ubicacionCompleta = indiceUbicaciones[contenedor];
+                    encontradoEnPATIO = "Sí";
+
+                    bloque = ubicacionCompleta.split('-')[0];
+                    bahia = ubicacionCompleta.split('-')[1].substring(0, 3);
+                    rowContenedor = parseInt(ubicacionCompleta.split('-')[1].substring(3, 5), 10);
+                    tier = parseInt(ubicacionCompleta.split('-')[1].substring(5, 7), 10);
+
+                    // Contar contenedores encima
+                    for (let k = 1; k < datosPATIO.length; k++) {
+                        let ubicacionTemp = datosPATIO[k][1];
+                        if (ubicacionTemp && ubicacionTemp === `${bloque}-${bahia}${String(rowContenedor).padStart(2, '0')}${String(datosPATIO[k][1].split('-')[1].substring(5, 7)).padStart(2, '0')}`) {
+                            let tierTemp = parseInt(datosPATIO[k][1].split('-')[1].substring(5, 7), 10);
+                            if (tierTemp > tier) {
+                                contenedoresEncima++;
+                            }
+                        }
+                    }
+
+                    // Contar contenedores a la izquierda
+                    for (let k = 1; k < datosPATIO.length; k++) {
+                        let ubicacionTemp = datosPATIO[k][1];
+                        if (ubicacionTemp && ubicacionTemp.startsWith(`${bloque}-${bahia}`)) {
+                            let rowTemp = parseInt(ubicacionTemp.split('-')[1].substring(3, 5), 10);
+                            if (rowTemp < rowContenedor && datosPATIO[k][7] !== contenedor) {
+                                contenedoresIzquierda++;
+                            }
+                        }
+                    }
+
+                    // Contar contenedores a la derecha
+                    for (let k = 1; k < datosPATIO.length; k++) {
+                        let ubicacionTemp = datosPATIO[k][1];
+                        if (ubicacionTemp && ubicacionTemp.startsWith(`${bloque}-${bahia}`)) {
+                            let rowTemp = parseInt(ubicacionTemp.split('-')[1].substring(3, 5), 10);
+                            if (rowTemp > rowContenedor && datosPATIO[k][7] !== contenedor) {
+                                contenedoresDerecha++;
+                            }
+                        }
+                    }
+                }
+
+                let total1 = contenedoresIzquierda + contenedoresEncima + 1;
+                let total2 = contenedoresDerecha + contenedoresEncima + 1;
+                let menorMovimiento = Math.min(total1, total2);
+                let lado = "";
+
+                if (["A1", "J1", "Y1", "F1", "X1"].includes(bloque)) {
+                    total1 = Infinity;
+                    menorMovimiento = total2;
+                    lado = "Derecha";
+                } else if (total1 < total2) {
+                    lado = "Izquierda";
+                } else if (total2 < total1) {
+                    lado = "Derecha";
+                } else {
+                    lado = "Ambos lados iguales";
+                }
+
+                resultados.push([fecha, contenedor, ubicacionCompleta, tipo, estado, encontradoEnPATIO, bloque, bahia,
+                    rowContenedor, tier, menorMovimiento, lado]);
+            }
+
+            mostrarResultados(resultados);
         }
 
-        function listarGruas() {
-            const lista = document.getElementById("listaGruas");
-            lista.innerHTML = "";
-            database.ref().once("value", snapshot => {
-                snapshot.forEach(childSnapshot => {
-                    const grua = childSnapshot.key;
-                    const li = document.createElement("li");
-                    li.textContent = grua;
-                    const btnEliminar = document.createElement("button");
-                    btnEliminar.textContent = "Eliminar";
-                    btnEliminar.onclick = () => eliminarGrua(grua);
-                    li.appendChild(btnEliminar);
-                    lista.appendChild(li);
-                });
-            });
-        }
+        
+      function mostrarResultados(datos) {
+        let tabla = "<div class='table-responsive'><table id='tablaResultados' class='table table-striped table-bordered'>";
+        tabla += "<thead><tr>";
+        datos[0].forEach(header => tabla += `<th>${header}</th>`);
+        tabla += "</tr></thead><tbody>";
 
-        function eliminarGrua(gruaId) {
-            database.ref(gruaId).remove().then(() => {
-                alert("Grúa eliminada");
-                listarGruas();
-            });
+        for (let i = 1; i < datos.length; i++) {
+            tabla += "<tr>";
+            datos[i].forEach(cell => tabla += `<td>${cell}</td>`);
+            tabla += "</tr>";
         }
+        tabla += "</tbody></table></div>";
+        document.getElementById("resultado").innerHTML = tabla;
 
-        window.onload = listarGruas;
+        // Activar DataTables con opciones
+        $('#tablaResultados').DataTable({
+            "order": [[0, 'desc']], // Ordenar por la primera columna (Fecha) de forma descendente
+            "paging": true, // Activar paginación
+            "searching": true, // Activar búsqueda
+            "lengthChange": true, // Permitir cambiar el número de registros por página
+            "info": true, // Mostrar información de la tabla
+            "dom": 'Blfrtip', // Modificar la estructura DOM para agregar los botones
+            "buttons": ['excel', 'csv'], // Agregar botones de exportación a Excel y CSV
+            "pageLength": 50, // Valor inicial de filas por página
+            "lengthMenu": [ [50, 100, 150, 200, 250, 300,350,400,450,500,550,600,650], [50, 100, 150, 200, 250, 300,350,400,450,500,550,600,650] ], // Opciones de filas por página
+            "language": {
+                "url": "https://cdn.datatables.net/plug-ins/1.11.5/i18n/Spanish.json" // Establecer idioma en español
+            }
+        });
+    }
+      
+      function limpiarDatos() {
+    // Limpiar los inputs de archivo
+    document.getElementById('inputPATIO').value = '';
+    document.getElementById('inputDESPACHO').value = '';
+
+    // Limpiar el contenedor de resultados
+    document.getElementById("resultado").innerHTML = '';
+
+    // Restablecer cualquier variable o estado necesario
+    datosPATIO = [];
+    datosDESPACHO = [];
+
+    // Opcional: Puedes restablecer otras partes de la interfaz si lo deseas.
+    alert("Los datos han sido limpiados.");
+}
     </script>
+
 </body>
+
 </html>
