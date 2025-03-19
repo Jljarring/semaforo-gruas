@@ -640,7 +640,10 @@
         function iniciarSesion() {
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
-
+          if (username === 'invitado' && password === 'invitado') {
+                // Redirigir a gestion.html si es un usuario invitado
+                window.location.href = 'gestion.html';
+          } else {
             database.ref('usuarios').once('value')
                 .then(snapshot => {
                     if (snapshot.exists()) {
@@ -657,6 +660,7 @@
                 })
                 .catch(error => console.error("Error al acceder a Firebase:", error));
         }
+          }
 
         let miGrafico;
         const modalEstadisticas = document.getElementById('modalEstadisticas');
