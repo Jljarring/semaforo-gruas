@@ -333,8 +333,12 @@
         function logout() {
             alert("Cerrando sesión...");
             localStorage.removeItem('usuario');
-            window.location.href = '/semaforo-gruas/'; // Redirigir a la página de inicio de sesión
+            window.location.href = 'index.html'; // Redirigir a la página de inicio de sesión
         }
+        history.pushState(null, document.title, location.href);
+window.addEventListener('popstate', function (event) {
+    history.pushState(null, document.title, location.href);
+});
     </script>
 
 </body>
