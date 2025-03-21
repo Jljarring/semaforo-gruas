@@ -39,7 +39,20 @@
             padding: 20px;
             margin-bottom: 20px;
         }
-
+              .ventana-emergente {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border: 1px solid #ccc;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            max-width: 90%;
+            max-height: 80%;
+            overflow-y: auto;
+        }
         .btn-primary {
             background-color: #007bff;
             border-color: #007bff;
@@ -205,7 +218,8 @@
                         </div>
                         <div class="text-center">
                             <button onclick="analizarContenedores()" class="btn btn-primary">Analizar</button>
-                          <button onclick="limpiarDatos()" class="btn btn-danger">Limpiar</button>
+                           <button onclick="limpiarDatos()" class="btn btn-danger">Limpiar</button>
+                           <button id="btnEstadisticas" class="btn btn-success" onclick="mostrarEstadisticas()">Estadísticas</button> <!-- Botón de Estadísticas -->
                         </div>
 
                     </div>
@@ -428,7 +442,176 @@ document.getElementById('btnAyuda').addEventListener('click', function() {
             }
         });
     }
+//******estadistia
+           
+          // Función para mostrar las estadísticas
+    function mostrarEstadisticas() {
+        if (resultadosAnalizados.length === 0) {
+            alert("No hay resultados para mostrar.");
+        } else {
+            analizarEstadisticas(resultadosAnalizados);
+        }
+    }
+  
+ // Función para analizar las estadísticas a partir de los resultados
+    function analizarEstadisticas(resultados) {
+    const movimientosPorHora = {};  // Para almacenar los despachos por hora
+    const despachosClasificados = {}; // Para almacenar los clasificados por tipo (tomar, trastear, enterrados)
+
+    // Inicializamos la estructura de despachos clasificados por hora
+    for (let i = 0; i < 24; i++) {
+        despachosClasificados[i] = { deDespachar: 0, deTrastear: 0, enterrados: 0 };
+    }
+
+    // Usar los resultados analizados para calcular las estadísticas
+    for (let i = 1; i < resultados.length; i++) {
+        const contenedor = resultados[i][1];
+        const fecha = resultados[i][0];
+        const movimientos = resultados[i][10]; // Suponiendo que "Menor Movimiento" está en la columna 10
+
+        // Verificar que los datos sean válidos
+        if (!fecha || !contenedor || !movimientos) continue;
+
+        const dateObj = new Date(fecha);
+        const hora = dateObj.getHours();
+
+        // Contar despachos por hora
+        if (!movimientosPorHora[hora]) {
+            movimientosPorHora[hora] = 0;
+        }
+        movimientosPorHora[hora]++;
+
+        // Clasificar los despachos según el número de movimientos
+        if (movimientos >= 1 && movimientos <= 5) {
+            despachosClasificados[hora].deDespachar++;
+        } else if (movimientos >= 6 && movimientos <= 9) {
+            despachosClasificados[hora].deTrastear++;
+        } else if (movimientos >= 10) {
+            despachosClasificados[hora].enterrados++;
+        }
+    }
+
+    mostrarVentanaEmergente(despachosClasificados, movimientosPorHora);
+}
       
+        // Función para mostrar la ventana emergente con las estadísticas
+    function mostrarVentanaEmergente(despachosClasificados, movimientosPorHora) {
+        const ventanaEmergente = document.createElement('div');
+        ventanaEmergente.classList.add('ventana-emergente');
+        
+        let contenido = `
+            <h3>Análisis Estadístico de Despachos</h3>
+            <div class="text-center">
+                <canvas id="graficoBarra" width="400" height="200"></canvas>
+            </div>
+            <hr />
+            <h4>Resumen de Despachos por Hora</h4>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Hora</th>
+                            <th>Despachos de Tomar (1-5)</th>
+                            <th>Despachos de Trastear (6-9)</th>
+                            <th>Despachos Enterrados (10+)</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+        // Variables para los totales por hora
+        let horas = [];
+        let despachosTomar = [];
+        let despachosTrastear = [];
+        let despachosEnterrados = [];
+
+        // Agregar los resultados por hora
+        for (const hora in movimientosPorHora) {
+            horas.push(hora + ":00");
+            despachosTomar.push(despachosClasificados[hora]?.deDespachar || 0);
+            despachosTrastear.push(despachosClasificados[hora]?.deTrastear || 0);
+            despachosEnterrados.push(despachosClasificados[hora]?.enterrados || 0);
+
+            contenido += `
+                <tr>
+                    <td>${hora}:00</td>
+                    <td>${despachosClasificados[hora]?.deDespachar || 0}</td>
+                    <td>${despachosClasificados[hora]?.deTrastear || 0}</td>
+                    <td>${despachosClasificados[hora]?.enterrados || 0}</td>
+                </tr>`;
+        }
+
+        contenido += `</tbody></table></div>`;
+
+        // Agregar un botón para cerrar la ventana emergente
+        contenido += `
+            <div class="text-center mt-4">
+                <button onclick="cerrarVentanaEmergente()" class="btn btn-danger">Cerrar</button>
+            </div>
+        `;
+
+        // Crear la ventana emergente y agregarla al cuerpo
+        ventanaEmergente.innerHTML = contenido;
+        document.body.appendChild(ventanaEmergente);
+
+        // Crear el gráfico de barras usando Chart.js
+        const ctx = document.getElementById('graficoBarra').getContext('2d');
+        const graficoBarra = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: horas, // Las horas
+                datasets: [{
+                    label: 'Despachos de Tomar (1-5)',
+                    data: despachosTomar,
+                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Despachos de Trastear (6-9)',
+                    data: despachosTrastear,
+                    backgroundColor: 'rgba(255, 159, 64, 0.5)',
+                    borderColor: 'rgba(255, 159, 64, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Despachos Enterrados (10+)',
+                    data: despachosEnterrados,
+                    backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                return `${tooltipItem.dataset.label}: ${tooltipItem.raw} despachos`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Función para cerrar la ventana emergente
+    function cerrarVentanaEmergente() {
+        const ventanaEmergente = document.querySelector('.ventana-emergente');
+        if (ventanaEmergente) {
+            ventanaEmergente.remove(); // Eliminar la ventana emergente
+        }
+    }
+ /// fin estadistica
       function limpiarDatos() {
     // Limpiar los inputs de archivo
     document.getElementById('inputPATIO').value = '';
