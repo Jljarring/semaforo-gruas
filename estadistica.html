@@ -2,6 +2,7 @@
 <html lang="es">
 
 <head>
+ <script src="auth.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Análisis de Contenedores</title>
@@ -21,8 +22,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
   <script src="https://cdn.datatables.net/buttons/2.3.3/js/buttons.html5.min.js"></script>
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.3/xlsx.full.min.js"></script>
-
     <style>
         body {
             background-color: #f8f9fa;
@@ -41,31 +40,6 @@
             margin-bottom: 20px;
         }
 
-              .ventana-emergente {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: white;
-            padding: 20px;
-            border: 1px solid #ccc;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
-            max-width: 90%;
-            max-height: 80%;
-            overflow-y: auto;
-        }
-
-        .btn-success {
-            background-color: #28a745;
-            border-color: #28a745;
-        }
-
-        .btn-success:hover {
-            background-color: #218838;
-            border-color: #1e7e34;
-        }
-      
         .btn-primary {
             background-color: #007bff;
             border-color: #007bff;
@@ -105,7 +79,7 @@
             max-width: 100%;
             overflow-x: auto;
         }
-      .navbar {
+     .navbar {
     background-color: #333; /* Color de fondo */
     color: white; /* Color del texto */
     display: flex; /* Usar flexbox para el diseño */
@@ -156,7 +130,7 @@
 .dropdown-menu.show {
     display: block; /* Mostrar el menú desplegable */
 }
-      .dropdown-menu .btn-ayuda {
+     .dropdown-menu .btn-ayuda {
     background-color: transparent; /* Fondo transparente */
     color: #333; /* Color del texto */
     border: none; /* Sin borde */
@@ -169,10 +143,24 @@
 .dropdown-menu .btn-ayuda:hover {
     background-color: #f0f0f0; /* Cambiar el fondo al pasar por encima */
 }
+
+     .ventana-emergente {
+    position: fixed; /* Posición fija en la pantalla */
+    top: 50%; /* Centrar verticalmente */
+    left: 50%; /* Centrar horizontalmente */
+    transform: translate(-50%, -50%); /* Ajustar el centrado */
+    background-color: white; /* Fondo blanco */
+    padding: 20px; /* Espacio interno */
+    border: 1px solid #ccc; /* Borde */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra */
+    z-index: 1000; /* Asegurar que esté encima de otros elementos */
+}
     </style>
+  
 </head>
 
 <body>
+
 <div id="navbar" class="navbar">
     <div class="navbar-left">
         <span class="navbar-heading">Desarrollo Independiente JJLG</span>
@@ -187,16 +175,17 @@
                 <i class="fas fa-user"></i>
                 <span id="usuarioNombre">invitado</span> ▼
             </span>
-
           <div id="dropdown-menu" class="dropdown-menu">
-    <a href="#" onclick="logout()">Cerrar sesión</a>
-    <button id="btnAyuda" class="btn-ayuda">
-        <i class="fas fa-question-circle"></i> Ayuda </button>
-</div>
+              <a href="#" onclick="logout()">Cerrar sesión</a>
+              <button id="btnAyuda" class="btn-ayuda">
+                  <i class="fas fa-question-circle"></i> Ayuda
+              </button>
+          </div>
         </div>
     </div>
 </div>
-  
+
+    
     <div class="container py-5">
         <div class="row justify-content-center">
             <div class="col-md-8 col-lg-6">
@@ -216,9 +205,7 @@
                         </div>
                         <div class="text-center">
                             <button onclick="analizarContenedores()" class="btn btn-primary">Analizar</button>
-                            <button onclick="limpiarDatos()" class="btn btn-danger">Limpiar</button>
-                            <button id="btnEstadisticas" class="btn btn-success">Estadísticas</button> <!-- Botón de Estadísticas -->
-
+                          <button onclick="limpiarDatos()" class="btn btn-danger">Limpiar</button>
                         </div>
 
                     </div>
@@ -238,10 +225,21 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-      function toggleMenu() {
-    const menu = document.getElementById('dropdown-menu');
-    menu.classList.toggle('show');
-}
+
+
+
+           // Verificar si el usuario está autenticado o es invitado
+        if (!localStorage.getItem('usuario') && localStorage.getItem('usuario') !== 'invitado') {
+            window.location.href = '/semaforo-gruas/'; // Redirigir a la página de inicio de sesión
+        }
+
+        // Cerrar sesión y redirigir a index.html al presionar el botón "Atrás"
+        window.addEventListener('popstate', function (event) {
+            localStorage.removeItem('usuario'); // Limpiar la sesión
+            window.location.href = '/semaforo-gruas/'; // Redirigir a index.html
+        });
+
+        
         let datosPATIO = [];
         let datosDESPACHO = [];
 
@@ -264,6 +262,39 @@
             lector.readAsArrayBuffer(archivo);
         }
 
+document.getElementById('btnAyuda').addEventListener('click', function() {
+    // Crear la ventana emergente
+    const ventanaEmergente = document.createElement('div');
+    ventanaEmergente.classList.add('ventana-emergente');
+
+    // Crear las imágenes de ayuda
+    const imgAyuda1 = document.createElement('img');
+    imgAyuda1.src = 'images/ayuda1.PNG'; // Reemplaza con la ruta correcta
+    imgAyuda1.alt = 'Ayuda 1';
+
+    const imgAyuda2 = document.createElement('img');
+    imgAyuda2.src = 'images/ayuda2.PNG'; // Reemplaza con la ruta correcta
+    imgAyuda2.alt = 'Ayuda 2';
+
+    // Agregar las imágenes a la ventana emergente
+    ventanaEmergente.appendChild(imgAyuda1);
+    ventanaEmergente.appendChild(imgAyuda2);
+
+    // Agregar la ventana emergente al body
+    document.body.appendChild(ventanaEmergente);
+
+    // Cerrar la ventana emergente al hacer clic fuera de ella
+    document.addEventListener('click', function(event) {
+        if (!ventanaEmergente.contains(event.target) && event.target !== document.getElementById('btnAyuda')) {
+            ventanaEmergente.remove();
+        }
+    });
+});
+
+          function toggleMenu() {
+    const menu = document.getElementById('dropdown-menu');
+    menu.classList.toggle('show');
+}
         document.getElementById('inputPATIO').addEventListener('change', (e) => cargarExcel(e, 'PATIO'));
         document.getElementById('inputDESPACHO').addEventListener('change', (e) => cargarExcel(e, 'DESPACHO'));
 
@@ -288,7 +319,7 @@
             resultados.push(encabezados);
 
             for (let i = 1; i < datosDESPACHO.length; i++) {
-                let fecha = datosDESPACHO[i][0] || "Desconocida";
+                let fecha = datosDESPACHO[i][1] || "Desconocida";
                 let contenedor = datosDESPACHO[i][3] || "Sin Datos";
                 let tipo = datosDESPACHO[i][4] || "N/A";
                 let estado = datosDESPACHO[i][5] || "Desconocido";
@@ -413,83 +444,37 @@
     // Opcional: Puedes restablecer otras partes de la interfaz si lo deseas.
     alert("Los datos han sido limpiados.");
 }
-              function analizarEstadisticas() {
-            const movimientosPorHora = {};
-            const despachosClasificados = {
-                deDespachar: 0,
-                deTrastear: 0,
-                enterrados: 0
-            };
 
-            for (let i = 1; i < datosDESPACHO.length; i++) {
-                const fecha = datosDESPACHO[i][1];
-                const contenedor = datosDESPACHO[i][3];
-                const movimientos = datosDESPACHO[i][5];
+                let temporizadorInactividad;
+        const tiempoInactividad = 600000; // 10 minutos (en milisegundos)
 
-                if (!fecha || !contenedor || !movimientos) continue;
-
-                const dateObj = new Date(fecha);
-                if (isNaN(dateObj.getTime())) {
-                    console.error("Fecha inválida:", fecha);
-                    continue;
-                }
-                const hora = dateObj.getHours();
-
-                if (!movimientosPorHora[hora]) {
-                    movimientosPorHora[hora] = 0;
-                }
-
-                movimientosPorHora[hora]++;
-
-                if (movimientos >= 1 && movimientos <= 5) {
-                    despachosClasificados.deDespachar++;
-                } else if (movimientos >= 6 && movimientos <= 9) {
-                    despachosClasificados.deTrastear++;
-                } else if (movimientos >= 10) {
-                    despachosClasificados.enterrados++;
-                }
-            }
-
-            mostrarVentanaEmergente(despachosClasificados, movimientosPorHora);
+        function cerrarSesionPorInactividad() {
+            alert("Sesión cerrada por inactividad.");
+            logout();
         }
 
-        function mostrarVentanaEmergente(despachosClasificados, movimientosPorHora) {
-            const ventanaEmergente = document.createElement('div');
-            ventanaEmergente.classList.add('ventana-emergente');
-            let contenido = `
-                <h3>Análisis Estadístico de Despachos</h3>
-                <p><strong>Despachos de 1 a 5 movimientos (De Despachar):</strong> ${despachosClasificados.deDespachar}</p>
-                <p><strong>Despachos de 6 a 9 movimientos (De Trastear):</strong> ${despachosClasificados.deTrastear}</p>
-                <p><strong>Despachos de 10 o más movimientos (Enterrados):</strong> ${despachosClasificados.enterrados}</p>
-                <hr />
-                <h4>Despachos por Hora</h4>
-                <div class='table-responsive'>
-                    <table class='table table-striped'>
-                        <thead><tr><th>Hora</th><th>Movimientos</th></tr></thead><tbody>`;
-
-            for (const hora in movimientosPorHora) {
-                contenido += `<tr><td>${hora}:00</td><td>${movimientosPorHora[hora]}</td></tr>`;
-            }
-
-            contenido += "</tbody></table></div>";
-
-            ventanaEmergente.innerHTML = contenido;
-            document.body.appendChild(ventanaEmergente);
-
-            document.addEventListener('click', function(event) {
-                if (!ventanaEmergente.contains(event.target)) {
-                    ventanaEmergente.remove();
-                }
-            });
+        function reiniciarTemporizador() {
+            clearTimeout(temporizadorInactividad);
+            temporizadorInactividad = setTimeout(cerrarSesionPorInactividad, tiempoInactividad);
         }
 
-        document.getElementById("btnEstadisticas").addEventListener("click", function() {
-            if (datosDESPACHO.length === 0) {
-                alert("No hay datos para mostrar.");
-            } else {
-                analizarEstadisticas();
-            }
-        });
+        // Inicializar el temporizador al cargar la página
+        reiniciarTemporizador();
+
+        // Reiniciar el temporizador en cada interacción del usuario
+        document.addEventListener('mousemove', reiniciarTemporizador);
+        document.addEventListener('keypress', reiniciarTemporizador);
+        document.addEventListener('click', reiniciarTemporizador);
+
+        function logout() {
+            alert("Cerrando sesión...");
+            localStorage.removeItem('usuario');
+            window.location.href = 'index.html'; // Redirigir a la página de inicio de sesión
+        }
+        history.pushState(null, document.title, location.href);
+window.addEventListener('popstate', function (event) {
+    history.pushState(null, document.title, location.href);
+});
     </script>
 
 </body>
