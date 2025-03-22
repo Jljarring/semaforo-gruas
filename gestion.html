@@ -444,7 +444,13 @@ document.getElementById('btnAyuda').addEventListener('click', function() {
     }
 //******estadistia
            
-          // Función para mostrar las estadísticas
+
+
+
+
+
+
+// Función para mostrar las estadísticas
     function mostrarEstadisticas() {
         if (resultadosAnalizados.length === 0) {
             alert("No hay resultados para mostrar.");
@@ -611,8 +617,7 @@ document.getElementById('btnAyuda').addEventListener('click', function() {
             ventanaEmergente.remove(); // Eliminar la ventana emergente
         }
     }
- /// fin estadistica
-      function limpiarDatos() {
+            function limpiarDatos() {
     // Limpiar los inputs de archivo
     document.getElementById('inputPATIO').value = '';
     document.getElementById('inputDESPACHO').value = '';
@@ -628,6 +633,7 @@ document.getElementById('btnAyuda').addEventListener('click', function() {
     alert("Los datos han sido limpiados.");
 }
 
+     
                 let temporizadorInactividad;
         const tiempoInactividad = 600000; // 10 minutos (en milisegundos)
 
