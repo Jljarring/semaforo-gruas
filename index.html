@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <title>ESTADO DE EQUIPOS RTGS</title>
   <link rel="stylesheet" href="./style.css">
-<script src="auth.js"></script>
+
 </head>
 <body>
 <!-- partial:index.partial.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <script src="auth.js"></script>
+    
   <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Semáforo de Grúas</title>
@@ -186,6 +186,43 @@
             width: 100%;
             max-width: 1000px;
         }
+.grua, .stacker {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    background-color: green;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    cursor: grab;
+}
+function agregarStacker(nombreStacker) {
+    const nuevoId = 'stacker' + Date.now();
+    database.ref(nuevoId).set({
+        nombre: nombreStacker,
+        top: 100,
+        left: 100,
+        estado: 'blue'
+    });
+}
+.stacker img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.stacker span {
+    position: absolute;
+    bottom: -20px;
+    width: 100%;
+    text-align: center;
+    color: black;
+}
+      
+      
+      
         .grua {
             position: absolute;
             width: 50px;
@@ -480,7 +517,14 @@
            <a href="#" id="mostrarEstadisticas">Gráfico</a>
         </div>
     </div>
-
+    <div class="menu-item">
+        <button class="boton-menu">STACKER</button>
+        <div class="contenido-menu">
+            <a href="#" id="agregarStacker">Añadir stacker</a>
+            <a href="#" id="eliminarStacker">Eliminar stacker</a>
+            <a href="#" id="mostrarEstadisticas">Gráfico</a>
+        </div>
+    </div>
     <div class="menu-item">
         <button class="boton-menu">OPERADORES</button>
         <div class="contenido-menu">
@@ -641,8 +685,7 @@
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
           if (username === 'invitado' && password === 'invitado') {
-                // Redirigir a gestion.html si es un usuario invitado
-		  localStorage.setItem('usuario', 'invitado');
+                // Redirigir a movimientospatio.html si es un usuario invitado
                 window.location.href = 'gestion.html';
           } else {
             database.ref('usuarios').once('value')
@@ -676,7 +719,7 @@
 
           function mostrarEstadisticas() {
             const estados = { green: 0, red: 0, blue: 0 };
-            const gruas = document.querySelectorAll('.grua');
+              const gruas = document.querySelectorAll('.grua, .stacker');
             gruas.forEach(grua => {
                 const color = grua.style.backgroundColor;
                 if (estados[color] !== undefined) {
@@ -778,7 +821,7 @@ function mostrarFormularioLogin() {
                 alert("El número de grúa es obligatorio.");
             }
         }
-
+      
         function agregarGrua(numeroGrua) {
             const nuevoId = 'grua' + Date.now();
             database.ref(nuevoId).set({
@@ -788,38 +831,66 @@ function mostrarFormularioLogin() {
                 estado: 'green'
             });
         }
-		
+
+        function agregarStacker(nombreStacker) {
+            const nuevoId = 'stacker' + Date.now();
+            database.ref(nuevoId).set({
+                nombre: nombreStacker,
+                top: 100,
+                left: 100,
+                estado: 'blue'
+            });
+        }
 
       function mostrarModalOperadores() {
-    const modal = document.getElementById('modalOperadores');
-    modal.style.display = 'block';
-    llenarTablaOperadores();
-}
-      
-function llenarTablaOperadores() {
+          const modal = document.getElementById('modalOperadores');
+          modal.style.display = 'block';
+          llenarTablaOperadores();
+      }
+
+    function llenarTablaOperadores() {
     const tablaBody = document.querySelector('#tablaOperadores tbody');
-    tablaBody.innerHTML = ''; // Limpiar la tabla
+    tablaBody.innerHTML = '';
 
     database.ref('/').once('value', snapshot => {
         snapshot.forEach(childSnapshot => {
-            const gruaId = childSnapshot.key;
-            if (gruaId.startsWith('grua')) {
-                const grua = childSnapshot.val();
+            const maquinaId = childSnapshot.key;
+            const maquina = childSnapshot.val();
+            if (maquinaId.startsWith('grua')) {
                 const fila = document.createElement('tr');
                 fila.innerHTML = `
-                    <td>${grua.numero || gruaId.replace('grua', '')}</td>
+                    <td>${maquina.numero || maquinaId.replace('grua', '')}</td>
                     <td>
-                        <select data-grua-id="${gruaId}" data-campo="estado">
-                            <option value="green" ${grua.estado === 'green' ? 'selected' : ''}>Operativa</option>
-                            <option value="blue" ${grua.estado === 'blue' ? 'selected' : ''}>Standby</option>
-                            <option value="red" ${grua.estado === 'red' ? 'selected' : ''}>Mantenimiento</option>
+                        <select data-maquina-id="${maquinaId}" data-campo="estado">
+                            <option value="green" ${maquina.estado === 'green' ? 'selected' : ''}>Operativa</option>
+                            <option value="blue" ${maquina.estado === 'blue' ? 'selected' : ''}>Standby</option>
+                            <option value="red" ${maquina.estado === 'red' ? 'selected' : ''}>Mantenimiento</option>
                         </select>
                     </td>
                     <td>
-                        <input type="text" value="${grua.operador || ''}" data-grua-id="${gruaId}" data-campo="operador">
+                        <input type="text" value="${maquina.operador || ''}" data-maquina-id="${maquinaId}" data-campo="operador">
                     </td>
                     <td>
-                        <input type="text" value="${grua.bloque || ''}" data-grua-id="${gruaId}" data-campo="bloque">
+                        <input type="text" value="${maquina.bloque || ''}" data-maquina-id="${maquinaId}" data-campo="bloque">
+                    </td>
+                `;
+                tablaBody.appendChild(fila);
+            } else if (maquinaId.startsWith('stacker')) {
+                const fila = document.createElement('tr');
+                fila.innerHTML = `
+                    <td>${maquina.nombre}</td>
+                    <td>
+                        <select data-maquina-id="${maquinaId}" data-campo="estado">
+                            <option value="green" ${maquina.estado === 'green' ? 'selected' : ''}>Operativa</option>
+                            <option value="blue" ${maquina.estado === 'blue' ? 'selected' : ''}>Standby</option>
+                            <option value="red" ${maquina.estado === 'red' ? 'selected' : ''}>Mantenimiento</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="text" value="${maquina.operador || ''}" data-maquina-id="${maquinaId}" data-campo="operador">
+                    </td>
+                    <td>
+                        <input type="text" value="${maquina.bloque || ''}" data-maquina-id="${maquinaId}" data-campo="bloque">
                     </td>
                 `;
                 tablaBody.appendChild(fila);
@@ -828,34 +899,132 @@ function llenarTablaOperadores() {
     });
 }
       
+      function generarReporteGruas() {
+    const tablaBody = document.querySelector('#tablaReporteGruas tbody');
+    tablaBody.innerHTML = '';
+
+    database.ref('/').once('value', snapshot => {
+        snapshot.forEach(childSnapshot => {
+            const maquinaId = childSnapshot.key;
+            if (maquinaId.startsWith('grua')) {
+                const maquina = childSnapshot.val();
+                const fila = document.createElement('tr');
+                fila.innerHTML = `
+                    <td>${maquina.numero || maquinaId.replace('grua', '')}</td>
+                    <td>${maquina.estado}</td>
+                    <td>${maquina.operador || 'N/A'}</td>
+                    <td>${maquina.bloque || 'N/A'}</td>
+                `;
+                tablaBody.appendChild(fila);
+            }
+        });
+        document.getElementById('modalReporteGruas').style.display = 'block';
+    });
+}
+
+function generarReporteStackers() {
+    const tablaBody = document.querySelector('#tablaReporteStackers tbody');
+    tablaBody.innerHTML = '';
+
+    database.ref('/').once('value', snapshot => {
+        snapshot.forEach(childSnapshot => {
+            const maquinaId = childSnapshot.key;
+            if (maquinaId.startsWith('stacker')) {
+                const maquina = childSnapshot.val();
+                const fila = document.createElement('tr');
+                fila.innerHTML = `
+                    <td>${maquina.nombre}</td>
+                    <td>${maquina.estado}</td>
+                `;
+                tablaBody.appendChild(fila);
+            }
+        });
+        document.getElementById('modalReporteStackers').style.display = 'block';
+    });
+}
+
+function generarReporteGeneral() {
+    const tablaBody = document.querySelector('#tablaReporteGeneral tbody');
+    tablaBody.innerHTML = '';
+
+    database.ref('/').once('value', snapshot => {
+        snapshot.forEach(childSnapshot => {
+            const maquinaId = childSnapshot.key;
+            const maquina = childSnapshot.val();
+            if (maquinaId.startsWith('grua')) {
+                const fila = document.createElement('tr');
+                fila.innerHTML = `
+                    <td>Grúa</td>
+                    <td>${maquina.numero || maquinaId.replace('grua', '')}</td>
+                    <td>${maquina.estado}</td>
+                    <td>${maquina.operador || 'N/A'}</td>
+                    <td>${maquina.bloque || 'N/A'}</td>
+                `;
+                tablaBody.appendChild(fila);
+            } else if (maquinaId.startsWith('stacker')) {
+                const fila = document.createElement('tr');
+                fila.innerHTML = `
+                    <td>Stacker</td>
+                    <td>${maquina.nombre}</td>
+                    <td>${maquina.estado}</td>
+                    <td></td>
+                    <td></td>
+                `;
+                tablaBody.appendChild(fila);
+            }
+        });
+        document.getElementById('modalReporteGeneral').style.display = 'block';
+    });
+}
+      
+      
+      
+      
+
     function generarReporteOperadores() {
     const tablaBody = document.querySelector('#tablaReporteOperadores tbody');
     tablaBody.innerHTML = ''; // Limpiar la tabla
 
     database.ref('/').once('value', snapshot => {
-        const gruas = [];
+        const maquinas = []; // Usaremos un array para grúas y stackers
         snapshot.forEach(childSnapshot => {
-            const gruaId = childSnapshot.key;
-            if (gruaId.startsWith('grua')) {
-                const grua = childSnapshot.val();
-                gruas.push({
-                    id: gruaId,
-                    numero: grua.numero || gruaId.replace('grua', ''),
-                    estado: grua.estado,
-                    operador: grua.operador || 'N/A',
-                    bloque: grua.bloque || 'N/A'
+            const maquinaId = childSnapshot.key;
+            const maquina = childSnapshot.val();
+            if (maquinaId.startsWith('grua')) {
+                maquinas.push({
+                    tipo: 'Grúa',
+                    id: maquinaId,
+                    numero: maquina.numero || maquinaId.replace('grua', ''),
+                    estado: maquina.estado,
+                    operador: maquina.operador || 'N/A',
+                    bloque: maquina.bloque || 'N/A'
+                });
+            } else if (maquinaId.startsWith('stacker')) {
+                maquinas.push({
+                    tipo: 'Stacker',
+                    id: maquinaId,
+                    nombre: maquina.nombre,
+                    estado: maquina.estado,
+                    operador: maquina.operador || 'N/A',
+                    bloque: maquina.bloque || 'N/A'
                 });
             }
         });
 
-        // Ordenar las grúas por número de grúa
-        gruas.sort((a, b) => {
-            return parseInt(a.numero) - parseInt(b.numero);
+        // Ordenar las grúas por número y los stackers por nombre
+        maquinas.sort((a, b) => {
+            if (a.tipo === 'Grúa' && b.tipo === 'Grúa') {
+                return parseInt(a.numero) - parseInt(b.numero);
+            } else if (a.tipo === 'Stacker' && b.tipo === 'Stacker') {
+                return a.nombre.localeCompare(b.nombre);
+            } else {
+                return a.tipo.localeCompare(b.tipo); // Grúas primero, luego stackers
+            }
         });
 
-        gruas.forEach(grua => {
+        maquinas.forEach(maquina => {
             let estadoTexto = '';
-            switch (grua.estado) {
+            switch (maquina.estado) {
                 case 'red':
                     estadoTexto = 'Mantenimiento';
                     break;
@@ -870,12 +1039,21 @@ function llenarTablaOperadores() {
             }
 
             const fila = document.createElement('tr');
-            fila.innerHTML = `
-                <td>${grua.numero}</td>
-                <td>${estadoTexto}</td>
-                <td>${grua.operador}</td>
-                <td>${grua.bloque}</td>
-            `;
+            if (maquina.tipo === 'Grúa') {
+                fila.innerHTML = `
+                    <td>${maquina.numero}</td>
+                    <td>${estadoTexto}</td>
+                    <td>${maquina.operador}</td>
+                    <td>${maquina.bloque}</td>
+                `;
+            } else if (maquina.tipo === 'Stacker') {
+                fila.innerHTML = `
+                    <td>${maquina.nombre}</td>
+                    <td>${estadoTexto}</td>
+                    <td>${maquina.operador}</td>
+                    <td>${maquina.bloque}</td>
+                `;
+            }
             tablaBody.appendChild(fila);
         });
 
@@ -915,20 +1093,22 @@ function llenarTablaOperadores() {
         generarReporteOperadoresExcel();
     });
 });
-
       
       
-function actualizarEstado(select, gruaId) {
+function actualizarEstado(select, maquinaId) {
     const estado = select.value;
-    database.ref(gruaId).update({ estado: estado });
+    database.ref(maquinaId).update({ estado: estado });
 }
+      
 document.getElementById('grabarOperadores').addEventListener('click', () => {
     const inputs = document.querySelectorAll('#tablaOperadores input, #tablaOperadores select');
     inputs.forEach(input => {
-        const gruaId = input.dataset.gruaId;
+        const maquinaId = input.dataset.maquinaId; // Usar maquinaId en lugar de gruaId
         const campo = input.dataset.campo;
         const valor = input.value;
-        database.ref(gruaId).update({ [campo]: valor });
+        if (maquinaId) { // Asegurarse de que maquinaId existe
+            database.ref(maquinaId).update({ [campo]: valor });
+        }
     });
     document.getElementById('modalOperadores').style.display = 'none';
 });
@@ -961,228 +1141,219 @@ document.getElementById('grabarOperadores').addEventListener('click', () => {
       
   
 
-        function cargarEstados() {
-            const contenedor = document.querySelector('.contenedor');
-            contenedor.innerHTML = '';
+function cargarEstados() {
+    const contenedor = document.querySelector('.contenedor');
+    contenedor.innerHTML = '';
+    let gruasEliminadas = []; // Declaración de gruasEliminadas
 
-            database.ref('imagenFondo').once('value', snapshot => {
-                const urlImagenFondo = snapshot.val();
-                if (urlImagenFondo) {
-                    const imagenPlano = document.createElement('img');
-                    imagenPlano.src = urlImagenFondo;
-                    imagenPlano.classList.add('plano');
-                    imagenPlano.alt = 'Plano de grúas';
-                    contenedor.appendChild(imagenPlano);
-                }
-            });
-
-  contenedor.addEventListener('mouseover', (e) => {
-        if (e.target.classList.contains('grua')) {
-            const grua = e.target;
-            const operador = grua.dataset.operador;
-            const bloque = grua.dataset.bloque;
-
-            const tooltip = document.createElement('div');
-            tooltip.classList.add('tooltip');
-            tooltip.textContent = `Operador: ${operador}, Bloque: ${bloque}`;
-
-            tooltip.style.position = 'absolute';
-            tooltip.style.left = (grua.offsetLeft + grua.offsetWidth + 10) + 'px';
-            tooltip.style.top = grua.offsetTop + 'px';
-
-            contenedor.appendChild(tooltip);
-
-            grua.addEventListener('mouseout', () => {
-                tooltip.remove();
-            }, { once: true });
+    // Cargar la imagen de fondo
+    database.ref('imagenFondo').once('value', snapshot => {
+        const urlImagenFondo = snapshot.val();
+        if (urlImagenFondo) {
+            const imagenPlano = document.createElement('img');
+            imagenPlano.src = urlImagenFondo;
+            imagenPlano.classList.add('plano');
+            imagenPlano.alt = 'Plano de grúas';
+            contenedor.appendChild(imagenPlano);
         }
     });
 
 
-            contenedor.addEventListener('click', (e) => {
-                if (e.target.classList.contains('grua')) {
-                    const gruas = document.querySelectorAll('.grua');
-                    gruas.forEach(grua => grua.classList.remove('seleccionada'));
-                    e.target.classList.add('seleccionada');
-                }
-            });
-
-          // Declarar gruasEliminadas en un alcance superior
-let gruasEliminadas = [];
-          
+  
+  
+      document.getElementById('eliminarGrua').addEventListener('click', () => {
+        const gruaSeleccionada = document.querySelector('.grua.seleccionada');
+        if (gruaSeleccionada) {
+            database.ref(gruaSeleccionada.id).remove();
+        }
+    });
+    
+    // Manejar la eliminación de grúas/stackers
     database.ref('/').on('child_removed', snapshot => {
-        const gruaId = snapshot.key;
-        const gruaElemento = document.getElementById(gruaId);
-        if (gruaElemento) {
-            const numeroGrua = gruaElemento.textContent; // Obtener el número del DOM
-            gruaElemento.remove();
+        const maquinaId = snapshot.key;
+        const maquinaElemento = document.getElementById(maquinaId);
+        if (maquinaElemento) {
+            let nombreMaquina = "";
+            if (maquinaId.startsWith('grua')) {
+                nombreMaquina = maquinaElemento.textContent || maquinaId.replace('grua', '');
+            } else if (maquinaId.startsWith('stacker')) {
+                nombreMaquina = maquinaElemento.textContent;
+            }
+            maquinaElemento.remove();
             actualizarTablaSemaforos();
-            alert(`Grúa ${numeroGrua} eliminada.`);
-            gruasEliminadas.push(gruaId); // Agregar gruaId a la lista de eliminados
+            alert(`Máquina ${nombreMaquina} eliminada.`);
+            gruasEliminadas.push(maquinaId); // Agregar a la lista de eliminados
         }
     });
-          
-              database.ref('/').on('child_changed', snapshot => {
-        const gruaId = snapshot.key;
-        if (gruaId.startsWith('grua') && !gruasEliminadas.includes(gruaId)) {
-            const gruaElemento = document.getElementById(gruaId);
-            if(gruaElemento){
+    // Manejar cambios en grúas/stackers
+    database.ref('/').on('child_changed', snapshot => {
+        const maquinaId = snapshot.key;
+        if (!gruasEliminadas.includes(maquinaId)) {
+            const maquinaElemento = document.getElementById(maquinaId);
+            if (maquinaElemento) {
                 const { estado, top, left } = snapshot.val();
-                if (gruaElemento) {
-                    gruaElemento.style.top = top + 'px';
-                    gruaElemento.style.left = left + 'px';
-                    gruaElemento.style.backgroundColor = estado || 'green';
-                    actualizarTablaSemaforos();
-                }
+                maquinaElemento.style.top = top + 'px';
+                maquinaElemento.style.left = left + 'px';
+                maquinaElemento.style.backgroundColor = estado || 'green';
+                actualizarTablaSemaforos();
             }
         }
     });
 
- 	        database.ref('/').on('child_added', snapshot => {
-                const gruaId = snapshot.key;
-                if (gruaId.startsWith('grua')) {
-                    const { estado, top, left, numero, operador, bloque } = snapshot.val();
+    // Manejar la adición de grúas/stackers
+    database.ref('/').on('child_added', snapshot => {
+        const maquinaId = snapshot.key;
+        const { estado, top, left, numero, nombre, operador, bloque } = snapshot.val();
 
-                    const gruaElemento = document.createElement('div');
-                    gruaElemento.id = gruaId;
-                    gruaElemento.classList.add('grua');
-                    gruaElemento.style.top = top + 'px';
-                    gruaElemento.style.left = left + 'px';
-                    gruaElemento.textContent = numero || gruaId.replace('grua', '');
-                    gruaElemento.style.backgroundColor = estado || 'green';
-                    gruaElemento.dataset.operador = operador || 'N/A'; // Agrega atributos de datos
-                    gruaElemento.dataset.bloque = bloque || 'N/A';
-                    actualizarTablaSemaforos(); // Actualizar la tabla después de un cambio
-                    let offsetX, offsetY, moviendo = false;
-                    let toqueCount = 0;
- // Agregar tooltip
-        gruaElemento.addEventListener('mouseover', (e) => {
-              let operador = gruaElemento.dataset.operador;
-    let bloque = gruaElemento.dataset.bloque;
-
-    if (operador) {
-        operador = operador.replace(',', ''); // Elimina la coma
-    }
-
-    if (bloque) {
-        bloque = bloque.replace(',', ''); // Elimina la coma
-    }   
-          
-    const tooltip = document.createElement('div');
-    tooltip.classList.add('tooltip');
-    tooltip.innerHTML = `
-        <div style="text-align: center;">
-            <span>Operador: ${gruaElemento.dataset.operador}</span><br>
-            <span>Bloque: ${gruaElemento.dataset.bloque}</span>
-        </div>
-    `;
-            tooltip.style.position = 'flex';
-            tooltip.style.left = (gruaElemento.offsetLeft + gruaElemento.offsetWidth + 10) + 'px';
-            tooltip.style.top = gruaElemento.offsetTop + 'px';
-
-            gruaElemento.parentElement.appendChild(tooltip);
-
-            gruaElemento.addEventListener('mouseout', () => {
-                tooltip.remove();
-            }, { once: true });
-        });
-
-
-			gruaElemento.addEventListener('mousedown', (e) => {
-    e.preventDefault(); // Prevenir la selección de texto
-
-    moviendo = true;
-    offsetX = e.clientX - gruaElemento.offsetLeft;
-    offsetY = e.clientY - gruaElemento.offsetTop;
-    gruaElemento.style.cursor = 'grabbing';
-});
-                    
-                  
-                      document.getElementById('eliminarGrua').onclick = function() {
-        const gruaSeleccionada = document.querySelector('.grua.seleccionada');
-        if (gruaSeleccionada) {
-            database.ref(gruaSeleccionada.id).remove().then(() => {
-                gruaSeleccionada.remove();
-            });
+        let maquinaElemento;
+        if (maquinaId.startsWith('grua')) {
+            maquinaElemento = document.createElement('div');
+            maquinaElemento.id = maquinaId;
+            maquinaElemento.classList.add('grua');
+            maquinaElemento.textContent = numero || maquinaId.replace('grua', '');
+        } else if (maquinaId.startsWith('stacker')) {
+            maquinaElemento = document.createElement('div');
+            maquinaElemento.id = maquinaId;
+            maquinaElemento.classList.add('stacker');
+            maquinaElemento.textContent = nombre;
         }
-    };
-                  
-                  
-                  document.addEventListener('mousemove', (e) => {
-                        if (moviendo) {
-                            gruaElemento.style.left = (e.clientX - offsetX) + 'px';
-                            gruaElemento.style.top = (e.clientY - offsetY) + 'px';
-                            database.ref(gruaId).update({
-                                top: parseInt(gruaElemento.style.top),
-                                left: parseInt(gruaElemento.style.left)
-                            });
-                        }
+
+        if (maquinaElemento) {
+            maquinaElemento.style.top = top + 'px';
+            maquinaElemento.style.left = left + 'px';
+            maquinaElemento.style.backgroundColor = estado || 'green';
+            maquinaElemento.dataset.operador = operador || 'N/A';
+            maquinaElemento.dataset.bloque = bloque || 'N/A';
+
+            // Tooltip
+            maquinaElemento.addEventListener('mouseover', (e) => {
+                const tooltip = document.createElement('div');
+                tooltip.classList.add('tooltip');
+                tooltip.innerHTML = `
+                    <div style="text-align: center;">
+                        <span>Operador: ${maquinaElemento.dataset.operador.replace(',', '')}</span><br>
+                        <span>Bloque: ${maquinaElemento.dataset.bloque.replace(',', '')}</span>
+                    </div>
+                `;
+                tooltip.style.position = 'flex';
+                tooltip.style.left = (maquinaElemento.offsetLeft + maquinaElemento.offsetWidth + 10) + 'px';
+                tooltip.style.top = maquinaElemento.offsetTop + 'px';
+                maquinaElemento.parentElement.appendChild(tooltip);
+
+                maquinaElemento.addEventListener('mouseout', () => {
+                    tooltip.remove();
+                }, { once: true });
+            });
+
+            // Movimiento
+            let offsetX, offsetY, moviendo = false;
+            let toqueCount = 0;
+
+            maquinaElemento.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                moviendo = true;
+                offsetX = e.clientX - maquinaElemento.offsetLeft;
+                offsetY = e.clientY - maquinaElemento.offsetTop;
+                maquinaElemento.style.cursor = 'grabbing';
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (moviendo) {
+                    maquinaElemento.style.left = (e.clientX - offsetX) + 'px';
+                    maquinaElemento.style.top = (e.clientY - offsetY) + 'px';
+                    database.ref(maquinaId).update({
+                        top: parseInt(maquinaElemento.style.top),
+                        left: parseInt(maquinaElemento.style.left)
                     });
-
-                    document.addEventListener('mouseup', () => {
-                        if (moviendo) {
-                            moviendo = false;
-                            gruaElemento.style.cursor = 'grab';
-                        }
-                    });
-
-                    gruaElemento.addEventListener('touchstart', (e) => {
-                        toqueCount++;
-                        if (toqueCount === 3) {
-                            const colores = ['green', 'blue', 'red'];
-                            const colorActual = gruaElemento.style.backgroundColor;
-                            const nuevoColor = colores[(colores.indexOf(colorActual) + 1) % colores.length];
-                            gruaElemento.style.backgroundColor = nuevoColor;
-                            database.ref(gruaId).update({ estado: nuevoColor });
-                            toqueCount = 0;
-                        }
-
-                        moviendo = true;
-                        offsetX = e.touches[0].clientX - gruaElemento.offsetLeft;
-                        offsetY = e.touches[0].clientY - gruaElemento.offsetTop;
-                    });
-
-                    document.addEventListener('touchmove', (e) => {
-                        if (moviendo) {
-                            const touch = e.touches[0];
-                            gruaElemento.style.left = (touch.clientX - offsetX) + 'px';
-                            gruaElemento.style.top = (touch.clientY - offsetY) + 'px';
-                            database.ref(gruaId).update({
-                                top: parseInt(gruaElemento.style.top),
-                                left: parseInt(gruaElemento.style.left)
-                            });
-                        }
-                    });
-
-                    document.addEventListener('touchend', () => {
-                        if (moviendo) {
-                            moviendo = false;
-                        }
-                    });
-
-                    gruaElemento.addEventListener('dblclick', () => {
-                        const colores = ['green', 'blue', 'red'];
-                        const nuevoEstado = colores[(colores.indexOf(gruaElemento.style.backgroundColor) + 1) % colores.length];
-                        gruaElemento.style.backgroundColor = nuevoEstado;
-                        database.ref(gruaId).update({ estado: nuevoEstado });
-						
-                    });
-
-                    contenedor.appendChild(gruaElemento);
-                   actualizarTablaSemaforos(); // Actualizar la tabla después de agregar una grúa
                 }
             });
-			
-			      actualizarTablaSemaforos();
-        }
-      
-      document.addEventListener('click', function(event) {
-  const menu = document.getElementById('dropdown-menu');
-  const userMenu = document.querySelector('.user-menu');
 
-  if (menu.style.display === 'block' && !userMenu.contains(event.target)) {
-    menu.style.display = 'none';
-  }
+            document.addEventListener('mouseup', () => {
+                if (moviendo) {
+                    moviendo = false;
+                    maquinaElemento.style.cursor = 'grab';
+                }
+            });
+
+            // Touch events
+            maquinaElemento.addEventListener('touchstart', (e) => {
+                toqueCount++;
+                if (toqueCount === 3) {
+                    const colores = ['green', 'blue', 'red'];
+                    const colorActual = maquinaElemento.style.backgroundColor;
+                    const nuevoColor = colores[(colores.indexOf(colorActual) + 1) % colores.length];
+                    maquinaElemento.style.backgroundColor = nuevoColor;
+                    database.ref(maquinaId).update({ estado: nuevoColor });
+                    toqueCount = 0;
+                }
+                moviendo = true;
+                offsetX = e.touches[0].clientX - maquinaElemento.offsetLeft;
+                offsetY = e.touches[0].clientY - maquinaElemento.offsetTop;
+            });
+
+            document.addEventListener('touchmove', (e) => {
+                if (moviendo) {
+                    const touch = e.touches[0];
+                    maquinaElemento.style.left = (touch.clientX - offsetX) + 'px';
+                    maquinaElemento.style.top = (touch.clientY - offsetY) + 'px';
+                    database.ref(maquinaId).update({
+                        top: parseInt(maquinaElemento.style.top),
+                        left: parseInt(maquinaElemento.style.left)
+                    });
+                }
+            });
+
+            document.addEventListener('touchend', () => {
+                if (moviendo) {
+                    moviendo = false;
+                }
+            });
+
+            // Double click para cambiar el estado
+            maquinaElemento.addEventListener('dblclick', () => {
+                const colores = ['green', 'blue', 'red'];
+                const nuevoEstado = colores[(colores.indexOf(maquinaElemento.style.backgroundColor) + 1) % colores.length];
+                maquinaElemento.style.backgroundColor = nuevoEstado;
+                database.ref(maquinaId).update({ estado: nuevoEstado });
+            });
+
+            contenedor.appendChild(maquinaElemento);
+            actualizarTablaSemaforos();
+        }
+    });
+
+ 
+      // Eventos de contenedor
+    contenedor.addEventListener('click', (e) => {
+        if (e.target.classList.contains('grua') || e.target.classList.contains('stacker')) {
+            document.querySelectorAll('.grua, .stacker').forEach(maquina => maquina.classList.remove('seleccionada'));
+            e.target.classList.add('seleccionada');
+        }
+    });
+
+    // Botones para stackers
+    document.getElementById('agregarStacker').addEventListener('click', () => {
+        const nombreStacker = prompt("Ingrese el nombre del stacker:");
+        if (nombreStacker) {
+            agregarStacker(nombreStacker);
+        }
+    });
+
+    document.getElementById('eliminarStacker').addEventListener('click', () => {
+        const stackerSeleccionado = document.querySelector('.stacker.seleccionada');
+        if (stackerSeleccionado) {
+            database.ref(stackerSeleccionado.id).remove();
+        }
+    });
+    actualizarTablaSemaforos();
+}
+      document.addEventListener('click', function(event) {
+      const menu = document.getElementById('dropdown-menu');
+      const userMenu = document.querySelector('.user-menu');
+
+    if (menu.style.display === 'block' && !userMenu.contains(event.target)) {
+        menu.style.display = 'none';
+    }
 });
 		
         function actualizarTablaSemaforos() {
