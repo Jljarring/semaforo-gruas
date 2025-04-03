@@ -144,14 +144,14 @@
                 const oper = item["OPER"];
                 const imo = item["IMO"];
                 const temp = item["TEMP"];
-                const transbordo = item["CONNECNTING VESSEL"];
+                const transbordo = item["CONNECTING VESSEL"];
                 const fpod = item["FPOD"];
                 const sobredimensionado = item["DIMENSION"];
 
                 if (bahia >= startRange && bahia <= endRange) {
                     rangeData.total++;
 
-                    if ((stat.trim() === "E" || stat.trim() === "M")) {
+                    if (item["STAT"] && (item["STAT"].trim() === "E" || item["STAT"].trim() === "M")) {
                         if (oper) rangeData.vacios[oper] = (rangeData.vacios[oper] || 0) + 1;
                         totalVacios[oper] = (totalVacios[oper] || 0) + 1;
                     }
