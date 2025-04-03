@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Subir y Procesar Archivo Excel</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
-    <style> 
+    <style>
         body {
             font-family: Arial, sans-serif;
             padding: 20px;
@@ -26,7 +26,7 @@
         input[type="file"] {
             margin: 10px 0;
         }
-         .selected {
+        .selected {
             background-color: yellow;
         }
         .container-grid {
@@ -47,13 +47,11 @@
 
     <h2>Sube un archivo Excel y procesa los datos</h2>
 
-    <!-- Formulario para cargar archivo -->
     <input type="file" id="fileUpload" accept=".xls,.xlsx">
     <button onclick="processFile()">Procesar Archivo</button>
 
     <h3>Resultados Procesados:</h3>
 
-    <!-- Tabla para mostrar los resultados -->
     <table id="resultTable">
         <thead>
             <tr>
@@ -67,278 +65,287 @@
                 <th>Sobredimensionados</th>
                 <th>Aperturas</th>
                 <th>Grúa</th>
-                 <th>Vista Barco</th>
+                <th>Vista Barco</th>
             </tr>
         </thead>
         <tbody></tbody>
     </table>
 
     <script>
-    let jsonData = []; // Variable para almacenar los datos del Excel
+        const coloresGrúas = ['#FFD700', '#ADD8E6', '#90EE90', '#FFA07A', '#DDA0DD']; // Oro, azul claro, verde claro, salmón, lavanda
+        let jsonData = []; // Variable para almacenar los datos del Excel
 
-    function processFile() {
-        const fileInput = document.getElementById('fileUpload');
-        const file = fileInput.files[0];
+        function processFile() {
+            const fileInput = document.getElementById('fileUpload');
+            const file = fileInput.files[0];
 
-        if (!file) {
-            alert('Por favor selecciona un archivo Excel.');
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = function(event) {
-            try {
-                const data = event.target.result;
-                const workbook = XLSX.read(data, { type: 'binary' });
-                const sheetName = workbook.SheetNames[0];
-                const sheet = workbook.Sheets[sheetName];
-                jsonData = XLSX.utils.sheet_to_json(sheet);
-                console.log(jsonData); // Agregar esta línea
-                const result = processDataVBA(jsonData); // Usamos processDataVBA
-                displayResultsVBA(result); // Usamos displayResultsVBA
-            } catch (error) {
-                alert('Error al procesar el archivo: ' + error.message);
-                console.error(error);
+            if (!file) {
+                alert('Por favor selecciona un archivo Excel.');
+                return;
             }
-        };
 
-        reader.readAsBinaryString(file);
-    }
-
-    function processDataVBA(data) {
-        let result = [];
-        let maxBahia = Math.max(...data.map(row => parseInt(row["BA"])));
-        let startRange = 1;
-
-        // Inicializar totalTotal aquí
-        let totalTotal = 0;
-        let totalVacios = {};
-        let totalImo = {};
-        let totalFull = {};
-        let totalConexion = {};
-        let totalTransbordos = {};
-        let totalSobredimensionados = {};
-        let totalAperturas = {};
-
-        while (startRange <= maxBahia) {
-            let endRange = startRange + 2;
-            if (endRange > maxBahia) endRange = maxBahia;
-            const rangeLabel = `${startRange}-${endRange}`;
-
-            let rangeData = {
-                range: rangeLabel,
-                total: 0,
-                vacios: {},
-                imo: {},
-                full: {},
-                conexion: {},
-                transbordos: {},
-                sobredimensionados: {},
-                aperturas: {}
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    const data = event.target.result;
+                    const workbook = XLSX.read(data, { type: 'binary' });
+                    const sheetName = workbook.SheetNames[0];
+                    const sheet = workbook.Sheets[sheetName];
+                    jsonData = XLSX.utils.sheet_to_json(sheet);
+                    console.log(jsonData);
+                    const result = processDataVBA(jsonData);
+                    displayResultsVBA(result);
+                } catch (error) {
+                    alert('Error al procesar el archivo: ' + error.message);
+                    console.error(error);
+                }
             };
 
-            data.forEach(item => {
-                const bahia = parseInt(item["BA"]);
-                const stat = item["STAT"];
-                const tipo = item["TYPE"];
-                const oper = item["OPER"];
-                const imo = item["IMO"];
-                const temp = item["TEMP"];
-                const transbordo = item["CONNECTING VESSEL"];
-                const fpod = item["FPOD"];
-                const sobredimensionado = item["DIMENSION"];
+            reader.readAsBinaryString(file);
+        }
 
-                if (bahia >= startRange && bahia <= endRange) {
-                    rangeData.total++;
+        function processDataVBA(data) {
+            let result = [];
+            let maxBahia = Math.max(...data.map(row => parseInt(row["BA"])));
+            let startRange = 1;
 
-                    if (item["STAT"] && (item["STAT"].trim() === "E" || item["STAT"].trim() === "M")) {
-                        if (oper) rangeData.vacios[oper] = (rangeData.vacios[oper] || 0) + 1;
-                        totalVacios[oper] = (totalVacios[oper] || 0) + 1;
-                    }
-                    if (imo && imo !== "-") {
-                        rangeData.imo[tipo] = (rangeData.imo[tipo] || 0) + 1;
-                        totalImo[tipo] = (totalImo[tipo] || 0) + 1;
-                    }
+            let totalTotal = 0;
+            let totalVacios = {};
+            let totalImo = {};
+            let totalFull = {};
+            let totalConexion = {};
+            let totalTransbordos = {};
+            let totalSobredimensionados = {};
+            let totalAperturas = {};
 
-                    if (temp && temp !== "-" && (!transbordo || transbordo === "-")) {
-                        rangeData.conexion[tipo] = (rangeData.conexion[tipo] || 0) + 1;
-                        totalConexion[tipo] = (totalConexion[tipo] || 0) + 1;
-                    }
+            while (startRange <= maxBahia) {
+                let endRange = startRange + 2;
+                if (endRange > maxBahia) endRange = maxBahia;
+                const rangeLabel = `${startRange}-${endRange}`;
 
-                    if (transbordo && transbordo !== "-") {
-                        const transbordoKey = `${tipo}(${fpod})`;
-                        rangeData.transbordos[transbordoKey] = (rangeData.transbordos[transbordoKey] || 0) + 1;
-                        totalTransbordos[transbordoKey] = (totalTransbordos[transbordoKey] || 0) + 1;
-                    }
+                let rangeData = {
+                    range: rangeLabel,
+                    total: 0,
+                    vacios: {},
+                    imo: {},
+                    full: {},
+                    conexion: {},
+                    transbordos: {},
+                    sobredimensionados: {},
+                    aperturas: {}
+                };
 
-                    if (sobredimensionado && sobredimensionado.trim().length > 0 && sobredimensionado !== "-") {
-                        rangeData.sobredimensionados[tipo] = (rangeData.sobredimensionados[tipo] || 0) + 1;
-                        totalSobredimensionados[tipo] = (totalSobredimensionados[tipo] || 0) + 1;
-                    }
+                data.forEach(item => {
+                    const bahia = parseInt(item["BA"]);
+                    const stat = item["STAT"];
+                    const tipo = item["TYPE"];
+                    const oper = item["OPER"];
+                    const imo = item["IMO"];
+                    const temp = item["TEMP"];
+                    const transbordo = item["CONNECTING VESSEL"];
+                    const fpod = item["FPOD"];
+                    const sobredimensionado = item["DIMENSION"];
 
-                    if (stat === "F" && (!transbordo || transbordo === "-") && (!imo || imo === "-") && (!temp || temp === "-") && (!sobredimensionado || sobredimensionado === "-")) {
-                        rangeData.full[tipo] = (rangeData.full[tipo] || 0) + 1;
-                        totalFull[tipo] = (totalFull[tipo] || 0) + 1;
-                    }
+                    if (bahia >= startRange && bahia <= endRange) {
+                        rangeData.total++;
 
-                    if (stat === "L") {
-                        rangeData.aperturas[tipo] = (rangeData.aperturas[tipo] || 0) + 1;
-                        totalAperturas[tipo] = (totalAperturas[tipo] || 0) + 1;
+                        if (item["STAT"] && (item["STAT"].trim() === "E" || item["STAT"].trim() === "M")) {
+                            if (oper) rangeData.vacios[oper] = (rangeData.vacios[oper] || 0) + 1;
+                            totalVacios[oper] = (totalVacios[oper] || 0) + 1;
+                        }
+                        if (imo && imo !== "-") {
+                            rangeData.imo[tipo] = (rangeData.imo[tipo] || 0) + 1;
+                            totalImo[tipo] = (totalImo[tipo] || 0) + 1;
+                        }
+
+                        if (temp && temp !== "-" && (!transbordo || transbordo === "-")) {
+                            rangeData.conexion[tipo] = (rangeData.conexion[tipo] || 0) + 1;
+                            totalConexion[tipo] = (totalConexion[tipo] || 0) + 1;
+                        }
+
+                        if (transbordo && transbordo !== "-") {
+                            const transbordoKey = `${tipo}(${fpod})`;
+                            rangeData.transbordos[transbordoKey] = (rangeData.transbordos[transbordoKey] || 0) + 1;
+                            totalTransbordos[transbordoKey] = (totalTransbordos[transbordoKey] || 0) + 1;
+                        }
+
+                        if (sobredimensionado && sobredimensionado.trim().length > 0 && sobredimensionado !== "-") {
+                            rangeData.sobredimensionados[tipo] = (rangeData.sobredimensionados[tipo] || 0) + 1;
+                            totalSobredimensionados[tipo] = (totalSobredimensionados[tipo] || 0) + 1;
+                        }
+
+                        if (stat === "F" && (!transbordo || transbordo === "-") && (!imo || imo === "-") && (!temp || temp === "-") && (!sobredimensionado || sobredimensionado === "-")) {
+                            rangeData.full[tipo] = (rangeData.full[tipo] || 0) + 1;
+                            totalFull[tipo] = (totalFull[tipo] || 0) + 1;
+                        }
+
+                        if (stat === "L") {
+                            rangeData.aperturas[tipo] = (rangeData.aperturas[tipo] || 0) + 1;
+                            totalAperturas[tipo] = (totalAperturas[tipo] || 0) + 1;
+                        }
                     }
-                }
+                });
+                totalTotal += rangeData.total;
+
+                result.push(rangeData);
+                startRange = endRange + 2;
+
+            }
+
+            result.push({
+                range: "TOTAL",
+                total: totalTotal,
+                vacios: totalVacios,
+                imo: totalImo,
+                full: totalFull,
+                conexion: totalConexion,
+                transbordos: totalTransbordos,
+                sobredimensionados: totalSobredimensionados,
+                aperturas: totalAperturas
             });
-            totalTotal += rangeData.total;
-
-            result.push(rangeData);
-            startRange = endRange + 2;
-
+            return result;
         }
 
-        result.push({
-            range: "TOTAL",
-            total: totalTotal,
-            vacios: totalVacios,
-            imo: totalImo,
-            full: totalFull,
-            conexion: totalConexion,
-            transbordos: totalTransbordos,
-            sobredimensionados: totalSobredimensionados,
-            aperturas: totalAperturas
-        });
-        return result;
-    }
+        function displayResultsVBA(results) {
+            const tbody = document.getElementById('resultTable').getElementsByTagName('tbody')[0];
+            tbody.innerHTML = "";
 
-    function displayResultsVBA(results) {
-        const tbody = document.getElementById('resultTable').getElementsByTagName('tbody')[0];
-        tbody.innerHTML = "";
+            results.forEach(row => {
+                let tr = document.createElement('tr');
 
-        results.forEach(row => {
-            let tr = document.createElement('tr');
+                tr.addEventListener('click', (event) => selectRow(tr, event));
+                tr.addEventListener('dblclick', () => {
+                    deselectRow(tr);
+                    tr.style.backgroundColor = '';
+                });
 
-            tr.addEventListener('click', (event) => selectRow(tr, event));
-            tr.addEventListener('dblclick', () => deselectRow(tr));
+                let tdRange = document.createElement('td');
+                tdRange.textContent = row.range;
+                tr.appendChild(tdRange);
 
-            let tdRange = document.createElement('td');
-            tdRange.textContent = row.range;
-            tr.appendChild(tdRange);
+                let tdTotal = document.createElement('td');
+                tdTotal.textContent = row.total;
+                tr.appendChild(tdTotal);
 
-            let tdTotal = document.createElement('td');
-            tdTotal.textContent = row.total;
-            tr.appendChild(tdTotal);
+                let tdVacios = document.createElement('td');
+                tdVacios.textContent = Object.entries(row.vacios).map(([key, value]) => `${value} ${key}`).join(" ");
+                tr.appendChild(tdVacios);
 
-            let tdVacios = document.createElement('td');
-            tdVacios.textContent = Object.entries(row.vacios).map(([key, value]) => `${value} ${key}`).join(" ");
-            tr.appendChild(tdVacios);
+                let tdImo = document.createElement('td');
+                tdImo.textContent = Object.entries(row.imo).map(([key, value]) => `${value} ${key}`).join(" ");
+                tr.appendChild(tdImo);
 
-            let tdImo = document.createElement('td');
-            tdImo.textContent = Object.entries(row.imo).map(([key, value]) => `${value} ${key}`).join(" ");
-            tr.appendChild(tdImo);
+                let tdFull = document.createElement('td');
+                tdFull.textContent = Object.entries(row.full).map(([key, value]) => `${value} ${key}`).join(" ");
+                tr.appendChild(tdFull);
 
-            let tdFull = document.createElement('td');
-            tdFull.textContent = Object.entries(row.full).map(([key, value]) => `${value} ${key}`).join(" ");
-            tr.appendChild(tdFull);
+                let tdConexion = document.createElement('td');
+                tdConexion.textContent = Object.entries(row.conexion).map(([key, value]) => `${value} ${key}`).join(" ");
+                tr.appendChild(tdConexion);
 
-            let tdConexion = document.createElement('td');
-            tdConexion.textContent = Object.entries(row.conexion).map(([key, value]) => `${value} ${key}`).join(" ");
-            tr.appendChild(tdConexion);
+                let tdTransbordo = document.createElement('td');
+                tdTransbordo.textContent = Object.entries(row.transbordos).map(([key, value]) => `${value} ${key}`).join(" ");
+                tr.appendChild(tdTransbordo);
 
-            let tdTransbordo = document.createElement('td');
-            tdTransbordo.textContent = Object.entries(row.transbordos).map(([key, value]) => `${value} ${key}`).join(" ");
-            tr.appendChild(tdTransbordo);
+                let tdSobredimensionados = document.createElement('td');
+                tdSobredimensionados.textContent = Object.entries(row.sobredimensionados).map(([key, value]) => `${value} ${key}`).join(" ");
+                tr.appendChild(tdSobredimensionados);
 
-            let tdSobredimensionados = document.createElement('td');
-            tdSobredimensionados.textContent = Object.entries(row.sobredimensionados).map(([key, value]) => `${value} ${key}`).join(" ");
-            tr.appendChild(tdSobredimensionados);
+                let tdAperturas = document.createElement('td');
+                tdAperturas.textContent = Object.entries(row.aperturas).map(([key, value]) => `${value} ${key}`).join(" ");
+                tr.appendChild(tdAperturas);
 
-            let tdAperturas = document.createElement('td');
-            tdAperturas.textContent = Object.entries(row.aperturas).map(([key, value]) => `${value} ${key}`).join(" ");
-            tr.appendChild(tdAperturas);
+                let tdGrua = document.createElement('td');
+                tr.appendChild(tdGrua);
 
-            let tdGrua = document.createElement('td');
-            tr.appendChild(tdGrua);
+                let tdBotonVista = document.createElement('td');
+                let botonVista = document.createElement('button');
+                botonVista.textContent = 'Vista';
+                botonVista.addEventListener('click', () => openShipView(row.range));
+                tdBotonVista.appendChild(botonVista);
+                tr.appendChild(tdBotonVista);
 
-            // Ahora, el botón de "Vista Barco"
-            let tdBotonVista = document.createElement('td');
-            let botonVista = document.createElement('button');
-            botonVista.textContent = 'Vista';
-            botonVista.addEventListener('click', () => openShipView(row.range)); // Enviar el valor de "range" directamente
-            tdBotonVista.appendChild(botonVista);
-            tr.appendChild(tdBotonVista);
-
-            tbody.appendChild(tr);
-        });
-    }
-
-    function selectRow(row, event) {
-        if (event.target.tagName === 'SELECT') return; // Evitar la selección al hacer clic en el select
-
-        const grúas = ["Grúa 1", "Grúa 2", "Grúa 3", "Grúa 4", "Grúa 5"];
-        const grúaSelect = document.createElement('select');
-
-        grúas.forEach(grúa => {
-            const option = document.createElement('option');
-            option.value = grúa;
-            option.textContent = grúa;
-            grúaSelect.appendChild(option);
-        });
-
-        row.classList.add('selected');
-        row.cells[9].innerHTML = ''; // Cambiado a 9 para la columna de Grúa
-        row.cells[9].appendChild(grúaSelect);
-    }
-
-    function deselectRow(row) {
-        row.classList.remove('selected');
-        row.cells[9].innerHTML = ''; // Cambiado a 9 para la columna de Grúa
-    }
-
-    function openShipView(bahiaRange) {
-        setTimeout(() => {
-            showShipView(bahiaRange);
-        }, 100);
-    }
-
-    function showShipView(bahiaRange) {
-        const shipView = window.open("", "Ship View", "width=800,height=600");
-        shipView.document.body.innerHTML = `
-            <h2>Vista del Barco - Bahía ${bahiaRange}</h2>
-            <div id="containerView"></div>
-        `;
-
-        const containerView = shipView.document.getElementById("containerView");
-        displayContainers(containerView, bahiaRange);
-    }
-
-    function displayContainers(containerView, bahiaRange) {
-        const [startBahia, endBahia] = bahiaRange.split("-").map(Number);
-        const bahiasInRange = [];
-        for (let i = startBahia; i <= endBahia; i++) {
-            bahiasInRange.push(i); // Esto asegura que las bahías 1, 2 y 3 sean consideradas en el rango.
-        }
-        const containers = jsonData.filter(item => bahiasInRange.includes(parseInt(item["BA"])));
-
-        if (containers.length === 0) {
-            containerView.innerHTML = "<p>No hay contenedores para esta bahía.</p>";
-            return;
-        }
-
-        const rows = [...new Set(containers.map(item => item["ROW"]))].sort();
-        const tiers = [...new Set(containers.map(item => item["TIER"]))].sort();
-
-        containerView.style.gridTemplateColumns = `repeat(${tiers.length}, 30px)`;
-
-        let gridHTML = "";
-        rows.forEach(row => {
-            tiers.forEach(tier => {
-                const container = containers.find(item => item["ROW"] === row && item["TIER"] === tier);
-                const type = container ? container["TYPE"] : "";
-                gridHTML += `<div class="container-cell">${type}</div>`;
+                tbody.appendChild(tr);
             });
-        });
+        }
 
-        containerView.innerHTML = `<div class="container-grid">${gridHTML}</div>`;
-    }
-</script>
+        function selectRow(row, event) {
+            if (event.target.tagName === 'SELECT') return;
+
+            const grúas = ["Grúa 1", "Grúa 2", "Grúa 3", "Grúa 4", "Grúa 5"];
+            const grúaSelect = document.createElement('select');
+
+            grúas.forEach(grúa => {
+                const option = document.createElement('option');
+                option.value = grúa;
+                option.textContent = grúa;
+                grúaSelect.appendChild(option);
+            });
+
+            row.classList.add('selected');
+            row.cells[9].innerHTML = '';
+            row.cells[9].appendChild(grúaSelect);
+
+            grúaSelect.addEventListener('change', () => {
+                const grúaSeleccionada = grúaSelect.value;
+                const índiceGrúa = grúas.indexOf(grúaSeleccionada);
+                row.style.backgroundColor = coloresGrúas[índiceGrúa];
+            });
+        }
+
+        function deselectRow(row) {
+            row.classList.remove('selected');
+            row.cells[9].innerHTML = '';
+            row.style.backgroundColor = '';
+        }
+
+        function openShipView(bahiaRange) {
+            setTimeout(() => {
+                showShipView(bahiaRange);
+            }, 100);
+        }
+
+        function showShipView(bahiaRange) {
+            const shipView = window.open("", "Ship View", "width=800,height=600");
+            shipView.document.body.innerHTML = `
+                <h2>Vista del Barco - Bahía ${bahiaRange}</h2>
+                <div id="containerView"></div>
+            `;
+
+            const containerView = shipView.document.getElementById("containerView");
+            displayContainers(containerView, bahiaRange);
+        }
+
+        function displayContainers(containerView, bahiaRange) {
+            const [startBahia, endBahia] = bahiaRange.split("-").map(Number);
+            const bahiasInRange = [];
+            for (let i = startBahia; i <= endBahia; i++) {
+                bahiasInRange.push(i);
+            }
+            const containers = jsonData.filter(item => bahiasInRange.includes(parseInt(item["BA"])));
+
+            if (containers.length === 0) {
+                containerView.innerHTML = "<p>No hay contenedores para esta bahía.</p>";
+                return;
+            }
+
+            const rows = [...new Set(containers.map(item => item["ROW"]))].sort();
+            const tiers = [...new Set(containers.map(item => item["TIER"]))].sort();
+
+            containerView.style.gridTemplateColumns = `repeat(${tiers.length}, 30px)`;
+
+            let gridHTML = "";
+            rows.forEach(row => {
+                tiers.forEach(tier => {
+                    const container = containers.find(item => item["ROW"] === row && item["TIER"] === tier);
+                    const type = container ? container["TYPE"] : "";
+                    gridHTML += `<div class="container-cell">${type}</div>`;
+                });
+            });
+
+            containerView.innerHTML = `<div class="container-grid">${gridHTML}</div>`;
+        }
+    </script>
 
 </body>
 </html>
