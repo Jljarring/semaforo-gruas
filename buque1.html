@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Descarga-Nave</title>
+    <title>Subir y Procesar Archivo Excel</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
@@ -201,72 +201,137 @@ button i {
             reader.readAsBinaryString(file);
         }
 
-        function processPendientesFile() {
-            const fileInput = document.getElementById('filePendientes');
-            const file = fileInput.files[0];
-            if (!file) { alert('Por favor selecciona un archivo Excel (Pendientes).'); return; }
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                try {
-                    const data = event.target.result;
-                    const workbook = XLSX.read(data, { type: 'binary' });
-                    const sheetName = workbook.SheetNames[0];
-                    const sheet = workbook.Sheets[sheetName];
-                    const datos = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+ 
+      function processPendientesFile() {
+    const fileInput = document.getElementById('filePendientes');
+    const file = fileInput.files[0];
+    if (!file) {
+        alert('Por favor selecciona un archivo Excel (Pendientes).');
+        return;
+    }
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        try {
+            const data = event.target.result;
+            const workbook = XLSX.read(data, { type: 'binary' });
+            const sheetName = workbook.SheetNames[0];
+            const sheet = workbook.Sheets[sheetName];
+            const datos = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
-                    const encabezados = datos[0];
-                    const indiceCodSigla = encabezados.indexOf('cod_sigla');
-                    const indiceCodNumero = encabezados.indexOf('cod_numero');
-                    const indiceCodDigito = encabezados.indexOf('cod_digito');
-                    const indiceFecDescarga = encabezados.indexOf('fec_descarga');
+            const encabezados = datos[0];
+            const indiceCodSigla = encabezados.indexOf('cod_sigla');
+            const indiceCodNumero = encabezados.indexOf('cod_numero');
+            const indiceCodDigito = encabezados.indexOf('cod_digito');
+            const indiceFecDescarga = encabezados.indexOf('fec_descarga');
+            const indiceDesGrua = encabezados.indexOf('des_grua');
+            const indiceCodBaroti = encabezados.indexOf('cod_baroti'); // Índice de la columna cod_baroti
 
-                    if (indiceCodSigla === -1 || indiceCodNumero === -1 || indiceCodDigito === -1 || indiceFecDescarga === -1) {
-                        alert("Las columnas necesarias no están presentes en el archivo.");
-                        return;
-                    }
+            if (indiceCodSigla === -1 || indiceCodNumero === -1 || indiceCodDigito === -1 || indiceFecDescarga === -1 || indiceDesGrua === -1 || indiceCodBaroti === -1) {
+                alert("Las columnas necesarias no están presentes en el archivo.");
+                return;
+            }
 
-                    const nuevaColumna = [];
-                    const estadoColumna = [];
+            const nuevaColumna = [];
+            const estadoColumna = [];
+            const gruaColumna = [];
+            const bahiaColumna = []; // Nueva columna para almacenar las bahías
 
-                    for (let i = 1; i < datos.length; i++) {
-                        const fila = datos[i];
-                        const cod_sigla = fila[indiceCodSigla];
-                        const cod_numero = fila[indiceCodNumero];
-                        const cod_digito = fila[indiceCodDigito];
-                        const fec_descarga = fila[indiceFecDescarga];
+            for (let i = 1; i < datos.length; i++) {
+                const fila = datos[i];
+                const cod_sigla = fila[indiceCodSigla];
+                const cod_numero = fila[indiceCodNumero];
+                const cod_digito = fila[indiceCodDigito];
+                const fec_descarga = fila[indiceFecDescarga];
+                const des_grua = fila[indiceDesGrua];
+                const codBaroti = fila[indiceCodBaroti];
+                const bahia = parseInt(codBaroti.substring(0, 3)); // Obtener los primeros 3 caracteres y convertir a entero
 
-                        const cod_numero_completo = String(cod_numero).padStart(6, '0');
-                        const concatenado = cod_sigla + cod_numero_completo + cod_digito;
-                        nuevaColumna.push(concatenado);
-                        const estado = fec_descarga ? 'SI' : '';
-                        estadoColumna.push(estado);
-                    }
+                if (isNaN(bahia)) { // Validar si la bahía es un número válido
+                    alert(`El valor de la bahía en la fila ${i + 1} no es válido.`);
+                    return;
+                }
 
-                    jsonDataPendientes = XLSX.utils.sheet_to_json(sheet);
-                    jsonDataPendientes.forEach((fila, index) => {
-                        fila.CONCATENADO = nuevaColumna[index];
-                        fila.Estado = estadoColumna[index];
-                    });
+                const cod_numero_completo = String(cod_numero).padStart(6, '0');
+                const concatenado = cod_sigla + cod_numero_completo + cod_digito;
+                nuevaColumna.push(concatenado);
+                const estado = fec_descarga ? 'SI' : '';
+                estadoColumna.push(estado);
+                gruaColumna.push(des_grua);
+                bahiaColumna.push(bahia); // Almacenar la bahía
+            }
 
-                    updateDataWithPendientes();
-                } catch (error) { alert('Error al procesar el archivo: ' + error.message); console.error(error); }
-            };
-            reader.readAsBinaryString(file);
-        }
-
-        function updateDataWithPendientes() {
-            const contenedoresPendientes = jsonDataPendientes
-                .filter(fila => fila.Estado && fila.Estado.trim().toUpperCase() === 'SI')
-                .map(fila => fila.CONCATENADO);
-
-            jsonData = jsonData.filter(fila => {
-                const contenedor = fila.CONTAINER;
-                return !contenedoresPendientes.includes(contenedor);
+            jsonDataPendientes = XLSX.utils.sheet_to_json(sheet);
+            jsonDataPendientes.forEach((fila, index) => {
+                fila.CONCATENADO = nuevaColumna[index];
+                fila.Estado = estadoColumna[index];
+                fila.GRUA = gruaColumna[index];
+                fila.BA = bahiaColumna[index]; // Agregar la bahía al objeto de datos
             });
-            const result = processDataVBA(jsonData);
-            displayResultsVBA(result);
-        }
 
+            updateDataWithPendientes();
+        } catch (error) {
+            console.error('Error al procesar el archivo:', error);
+            alert('Error al procesar el archivo: ' + error.message);
+        }
+    };
+    reader.readAsBinaryString(file);
+}
+
+function updateDataWithPendientes() {
+    try {
+        const contenedoresPendientes = jsonDataPendientes
+            .filter(fila => fila.Estado && fila.Estado.trim().toUpperCase() === 'SI')
+            .map(fila => ({ contenedor: fila.CONCATENADO, grua: fila.GRUA, fecha: new Date(fila.fec_descarga), bahia: fila.BA }));
+
+        jsonData = jsonData.filter(fila => {
+            const contenedor = fila.CONTAINER;
+            return !contenedoresPendientes.some(pend => pend.contenedor === contenedor);
+        });
+
+        const result = processDataVBA(jsonData);
+        displayResultsVBA(result);
+
+        // Almacenar la última ubicación de cada grúa
+        let ultimaUbicacionGrúas = {};
+        contenedoresPendientes.forEach(pendiente => {
+            let grua = pendiente.grua.replace('GANTRY', 'Grúa '); // Convertir GANTRYX a Grúa X
+            if (!ultimaUbicacionGrúas[grua] || pendiente.fecha > ultimaUbicacionGrúas[grua].fecha) {
+                ultimaUbicacionGrúas[grua] = { fecha: pendiente.fecha, contenedor: pendiente.contenedor, bahia: pendiente.bahia };
+            }
+        });
+
+        // Colorear filas según la última ubicación de la grúa y mostrar el nombre de la grúa
+        const filasTabla = document.getElementById('resultTable').getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+        Array.from(filasTabla).forEach(fila => {
+            const rangoBahia = fila.cells[0].textContent;
+            const [inicioBahia, finBahia] = rangoBahia.split('-').map(Number);
+
+            let gruaAsignada = ''; // Variable para almacenar el nombre de la grúa asignada
+
+            for (const grua in ultimaUbicacionGrúas) {
+                const ultimaBahia = ultimaUbicacionGrúas[grua].bahia;
+                if (ultimaBahia >= inicioBahia && ultimaBahia <= finBahia) {
+                    const indiceGrua = parseInt(grua.replace('Grúa ', '')) - 1;
+                    if (!isNaN(indiceGrua) && indiceGrua >= 0 && indiceGrua < coloresGrúas.length) {
+                        fila.style.backgroundColor = coloresGrúas[indiceGrua];
+                        fila.dataset.grua = grua;
+                        gruaAsignada = grua; // Almacenar el nombre de la grúa
+                    }
+                }
+            }
+
+            // Mostrar el nombre de la grúa en la celda correspondiente
+            fila.cells[9].textContent = gruaAsignada;
+        });
+
+        // Mostrar la última ubicación de cada grúa
+        console.log("Última ubicación de grúas:", ultimaUbicacionGrúas);
+    } catch (error) {
+        console.error('Error al actualizar los datos:', error);
+        alert('Error al actualizar los datos: ' + error.message);
+    }
+}
+      
         function processDataVBA(data) {
             let result = [];
             let maxBahia = Math.max(...data.map(row => parseInt(row["BA"])));
@@ -627,7 +692,6 @@ function calculateDescargaFullEmpty(jsonData) {
 
         return fullHTML + emptyHTML;
     }
-           
       
         function calculateSummary() {
             let summary = {};
@@ -740,7 +804,7 @@ function calculateDescargaFullEmpty(jsonData) {
                 }
             }
         });
-     
+      
     </script>
 </body>
 </html>
