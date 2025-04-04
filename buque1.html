@@ -21,8 +21,42 @@
         .dropdown-content a:hover { background-color: #ddd; }
         .dropdown:hover .dropdown-content { display: block; }
 
-      
-      
+#summaryModal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%); /* Asegura el centrado */
+    width: 80%;
+    max-width: 600px;
+    height: auto;
+    max-height: 80%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+.modal-content {
+    background-color: #fefefe;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 100%;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
       /* Estilos para las nuevas tablas */
 .summary-table {
     width: 100%;
@@ -110,6 +144,13 @@ button i {
     </style>
 </head>
 <body>
+      <div id="summaryModal" class="modal" style="display: none; position: fixed; z-index: 1; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 600px; height: auto; max-height: 80%; overflow: auto; background-color: rgba(0, 0, 0, 0.4);">
+        <div class="modal-content" style="background-color: #fefefe; padding: 20px; border: 1px solid #888; width: 100%; box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);">
+            <span class="close" style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
+            <div id="modalSummaryContent"></div>
+        </div>
+    </div>
+  
     <nav class="navbar">
         <a href="#">Desarrollo Independiente JJLG</a>
         <div class="dropdown">
@@ -331,8 +372,8 @@ function updateDataWithPendientes() {
         alert('Error al actualizar los datos: ' + error.message);
     }
 }
-      
-        function processDataVBA(data) {
+           
+          function processDataVBA(data) {
             let result = [];
             let maxBahia = Math.max(...data.map(row => parseInt(row["BA"])));
             let startRange = 1;
@@ -605,13 +646,41 @@ function updateDataWithPendientes() {
         }
 
 function showSummary() {
-    const summaryData = calculateSummary();
-    const summaryHTML = generateSummaryHTML(summaryData);
+  const summaryData = calculateSummary();
+  const summaryHTML = generateSummaryHTML(summaryData);
 
-    const descargaData = calculateDescargaFullEmpty(jsonData); // Pasa jsonData aquí
-    const descargaHTML = generateDescargaFullEmptyHTML(descargaData);
+  const descargaData = calculateDescargaFullEmpty(jsonData);
+  const descargaHTML = generateDescargaFullEmptyHTML(descargaData);
 
-    openSummaryPopup(summaryHTML + '<br>' + descargaHTML);
+  function showSummary() {
+    // ... (tu código actual) ...
+
+    const modal = document.getElementById('summaryModal');
+    modal.style.display = "block";
+
+    // Centrar el modal usando JavaScript
+    modal.style.left = (window.innerWidth - modal.offsetWidth) / 2 + "px";
+    modal.style.top = (window.innerHeight - modal.offsetHeight) / 2 + "px";
+
+    // ... (tu código actual) ...
+}
+  
+  const modalContent = document.getElementById('modalSummaryContent');
+  modalContent.innerHTML = summaryHTML + '<br>' + descargaHTML;
+
+  const modal = document.getElementById('summaryModal');
+  modal.style.display = "block";
+
+  const closeButton = document.querySelector('#summaryModal .close');
+  closeButton.onclick = function() {
+    modal.style.display = "none";
+  };
+
+  window.onclick = function(event) {
+    if (event.target === modal) {
+      modal.style.display = "none";
+    }
+  };
 }
       
 
@@ -692,6 +761,8 @@ function calculateDescargaFullEmpty(jsonData) {
 
         return fullHTML + emptyHTML;
     }
+      
+      
       
         function calculateSummary() {
             let summary = {};
@@ -804,7 +875,8 @@ function calculateDescargaFullEmpty(jsonData) {
                 }
             }
         });
-      
+          
     </script>
+
 </body>
 </html>
