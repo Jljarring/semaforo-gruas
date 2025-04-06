@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Subir y Procesar Archivo Excel</title>
+    <title>Descarga Buque</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
@@ -192,25 +192,27 @@ button i {
 </div>
   
     <div class="container">
-        <table id="resultTable">
-            <thead>
-                <tr>
-                    <th>Rango de Bahía</th>
-                    <th>Total</th>
-                    <th>Vacios</th>
-                    <th>IMO</th>
-                    <th>FULL</th>
-                    <th>Conexión</th>
-                    <th>Trasbordos</th>
-                    <th>Sobredimensionados</th>
-                    <th>Aperturas</th>
-                    <th>Grúa</th>
-                    <th>Vista Barco</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </div>
+       <table id="resultTable">
+          <thead>
+              <tr>
+                  <th>Rango de Bahía</th>
+                  <th>Total</th>
+                  <th>Vacios</th>
+                  <th>IMO</th>
+                  <th>FULL</th>
+                  <th>Conexión</th>
+                  <th>Trasbordos</th>
+                  <th>Sobredimensionados</th>
+                  <th>Aperturas</th>
+                  <th>Grúa</th>
+                  <th>Vista Barco</th>
+                  <th>Upper deck</th>
+                  <th>Below deck</th>
+              </tr>
+          </thead>
+          <tbody></tbody>
+      </table>
+  </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0/jquery.min.js"></script>
@@ -378,175 +380,197 @@ function updateDataWithPendientes() {
     }
 }
            
-          function processDataVBA(data) {
-            let result = [];
-            let maxBahia = Math.max(...data.map(row => parseInt(row["BA"])));
-            let startRange = 1;
+function processDataVBA(data) {
+    let result = [];
+    let maxBahia = Math.max(...data.map(row => parseInt(row["BA"])));
+    let startRange = 1;
 
-            let totalTotal = 0;
-            let totalVacios = {};
-            let totalImo = {};
-            let totalFull = {};
-            let totalConexion = {};
-            let totalTransbordos = {};
-            let totalSobredimensionados = {};
-            let totalAperturas = {};
+    let totalTotal = 0;
+    let totalVacios = {};
+    let totalImo = {};
+    let totalFull = {};
+    let totalConexion = {};
+    let totalTransbordos = {};
+    let totalSobredimensionados = {};
+    let totalAperturas = {};
+    let totalUpperDeck = 0;
+    let totalBelowDeck = 0;
 
-            while (startRange <= maxBahia) {
-                let endRange = startRange + 2;
-                if (endRange > maxBahia) endRange = maxBahia;
-                const rangeLabel = `${startRange}-${endRange}`;
+    while (startRange <= maxBahia) {
+        let endRange = startRange + 2;
+        if (endRange > maxBahia) endRange = maxBahia;
+        const rangeLabel = `${startRange}-${endRange}`;
 
-                let rangeData = {
-                    range: rangeLabel,
-                    total: 0,
-                    vacios: {},
-                    imo: {},
-                    full: {},
-                    conexion: {},
-                    transbordos: {},
-                    sobredimensionados: {},
-                    aperturas: {}
-                };
+        let rangeData = {
+            range: rangeLabel,
+            total: 0,
+            vacios: {},
+            imo: {},
+            full: {},
+            conexion: {},
+            transbordos: {},
+            sobredimensionados: {},
+            aperturas: {},
+            upperDeck: 0,
+            belowDeck: 0
+        };
 
-                data.forEach(item => {
-                    const bahia = parseInt(item["BA"]);
-                    const stat = item["STAT"];
-                    const tipo = item["TYPE"];
-                    const oper = item["OPER"];
-                    const imo = item["IMO"];
-                    const temp = item["TEMP"];
-                    const transbordo = item["CONNECTING VESSEL"];
-                    const fpod = item["FPOD"];
-                    const sobredimensionado = item["DIMENSION"];
+        data.forEach(item => {
+            const bahia = parseInt(item["BA"]);
+            const stat = item["STAT"];
+            const tipo = item["TYPE"];
+            const oper = item["OPER"];
+            const imo = item["IMO"];
+            const temp = item["TEMP"];
+            const transbordo = item["CONNECTING VESSEL"];
+            const fpod = item["FPOD"];
+            const sobredimensionado = item["DIMENSION"];
+            const tier = parseInt(item["TI"] || 0);
 
-                    if (bahia >= startRange && bahia <= endRange) {
-                        rangeData.total++;
+            if (bahia >= startRange && bahia <= endRange) {
+                rangeData.total++;
 
-                        if (item["STAT"] && (item["STAT"].trim() === "E" || item["STAT"].trim() === "M")) {
-                            if (oper) rangeData.vacios[oper] = (rangeData.vacios[oper] || 0) + 1;
-                            totalVacios[oper] = (totalVacios[oper] || 0) + 1;
-                        }
-                        if (imo && imo !== "-") {
-                            rangeData.imo[tipo] = (rangeData.imo[tipo] || 0) + 1;
-                            totalImo[tipo] = (totalImo[tipo] || 0) + 1;
-                        }
+                if (item["STAT"] && (item["STAT"].trim() === "E" || item["STAT"].trim() === "M")) {
+                    if (oper) rangeData.vacios[oper] = (rangeData.vacios[oper] || 0) + 1;
+                    totalVacios[oper] = (totalVacios[oper] || 0) + 1;
+                }
+                if (imo && imo !== "-") {
+                    rangeData.imo[tipo] = (rangeData.imo[tipo] || 0) + 1;
+                    totalImo[tipo] = (totalImo[tipo] || 0) + 1;
+                }
 
-                        if (temp && temp !== "-" && (!transbordo || transbordo === "-")) {
-                            rangeData.conexion[tipo] = (rangeData.conexion[tipo] || 0) + 1;
-                            totalConexion[tipo] = (totalConexion[tipo] || 0) + 1;
-                        }
+                if (temp && temp !== "-" && (!transbordo || transbordo === "-")) {
+                    rangeData.conexion[tipo] = (rangeData.conexion[tipo] || 0) + 1;
+                    totalConexion[tipo] = (totalConexion[tipo] || 0) + 1;
+                }
 
-                        if (transbordo && transbordo !== "-") {
-                            const transbordoKey = `${tipo}(${fpod})`;
-                            rangeData.transbordos[transbordoKey] = (rangeData.transbordos[transbordoKey] || 0) + 1;
-                            totalTransbordos[transbordoKey] = (totalTransbordos[transbordoKey] || 0) + 1;
-                        }
+                if (transbordo && transbordo !== "-") {
+                    const transbordoKey = `${tipo}(${fpod})`;
+                    rangeData.transbordos[transbordoKey] = (rangeData.transbordos[transbordoKey] || 0) + 1;
+                    totalTransbordos[transbordoKey] = (totalTransbordos[transbordoKey] || 0) + 1;
+                }
 
-                        if (sobredimensionado && sobredimensionado.trim().length > 0 && sobredimensionado !== "-") {
-                            rangeData.sobredimensionados[tipo] = (rangeData.sobredimensionados[tipo] || 0) + 1;
-                            totalSobredimensionados[tipo] = (totalSobredimensionados[tipo] || 0) + 1;
-                        }
+                if (sobredimensionado && sobredimensionado.trim().length > 0 && sobredimensionado !== "-") {
+                    rangeData.sobredimensionados[tipo] = (rangeData.sobredimensionados[tipo] || 0) + 1;
+                    totalSobredimensionados[tipo] = (totalSobredimensionados[tipo] || 0) + 1;
+                }
 
-                        if (stat === "F" && (!transbordo || transbordo === "-") && (!imo || imo === "-") && (!temp || temp === "-") && (!sobredimensionado || sobredimensionado === "-")) {
-                            rangeData.full[tipo] = (rangeData.full[tipo] || 0) + 1;
-                            totalFull[tipo] = (totalFull[tipo] || 0) + 1;
-                        }
+                if (stat === "F" && (!transbordo || transbordo === "-") && (!imo || imo === "-") && (!temp || temp === "-") && (!sobredimensionado || sobredimensionado === "-")) {
+                    rangeData.full[tipo] = (rangeData.full[tipo] || 0) + 1;
+                    totalFull[tipo] = (totalFull[tipo] || 0) + 1;
+                }
 
-                        if (stat === "L") {
-                            rangeData.aperturas[tipo] = (rangeData.aperturas[tipo] || 0) + 1;
-                            totalAperturas[tipo] = (totalAperturas[tipo] || 0) + 1;
-                        }
-                    }
-                });
-                totalTotal += rangeData.total;
+                if (stat === "L") {
+                    rangeData.aperturas[tipo] = (rangeData.aperturas[tipo] || 0) + 1;
+                    totalAperturas[tipo] = (totalAperturas[tipo] || 0) + 1;
+                }
 
-                result.push(rangeData);
-                startRange = endRange + 2;
+                if (tier >= 70 && tier <= 100) {
+                    rangeData.upperDeck++;
+                } else if (tier >= 1 && tier <= 26) {
+                    rangeData.belowDeck++;
+                }
             }
+        });
+        totalTotal += rangeData.total;
+        totalUpperDeck += rangeData.upperDeck;
+        totalBelowDeck += rangeData.belowDeck;
 
-            result.push({
-                range: "TOTAL",
-                total: totalTotal,
-                vacios: totalVacios,
-                imo: totalImo,
-                full: totalFull,
-                conexion: totalConexion,
-                transbordos: totalTransbordos,
-                sobredimensionados: totalSobredimensionados,
-                aperturas: totalAperturas
-            });
-            return result;
-        }
+        result.push(rangeData);
+        startRange = endRange + 2;
+    }
 
-        function displayResultsVBA(results) {
-            const tbody = document.getElementById('resultTable').getElementsByTagName('tbody')[0];
-            tbody.innerHTML = "";
+    result.push({
+        range: "TOTAL",
+        total: totalTotal,
+        vacios: totalVacios,
+        imo: totalImo,
+        full: totalFull,
+        conexion: totalConexion,
+        transbordos: totalTransbordos,
+        sobredimensionados: totalSobredimensionados,
+        aperturas: totalAperturas,
+        upperDeck: totalUpperDeck,
+        belowDeck: totalBelowDeck
+    });
+    return result;
+}
 
-            results.forEach(row => {
-                let tr = document.createElement('tr');
+function displayResultsVBA(results) {
+    const tbody = document.getElementById('resultTable').getElementsByTagName('tbody')[0];
+    tbody.innerHTML = "";
 
-                tr.addEventListener('click', (event) => selectRow(tr, event));
-                tr.addEventListener('dblclick', () => {
-                    deselectRow(tr);
-                });
+    results.forEach(row => {
+        let tr = document.createElement('tr');
 
-                let tdRange = document.createElement('td');
-                tdRange.textContent = row.range;
-                tr.appendChild(tdRange);
+        tr.addEventListener('click', (event) => selectRow(tr, event));
+        tr.addEventListener('dblclick', () => {
+            deselectRow(tr);
+        });
 
-                let tdTotal = document.createElement('td');
-                tdTotal.textContent = row.total;
-                tr.appendChild(tdTotal);
+        let tdRange = document.createElement('td');
+        tdRange.textContent = row.range;
+        tr.appendChild(tdRange);
 
-                let tdVacios = document.createElement('td');
-                tdVacios.textContent = Object.entries(row.vacios).map(([key, value]) => `${value} ${key}`).join(" ");
-                tr.appendChild(tdVacios);
+        let tdTotal = document.createElement('td');
+        tdTotal.textContent = row.total;
+        tr.appendChild(tdTotal);
 
-                let tdImo = document.createElement('td');
-                tdImo.textContent = Object.entries(row.imo).map(([key, value]) => `${value} ${key}`).join(" ");
-                tr.appendChild(tdImo);
+        let tdVacios = document.createElement('td');
+        tdVacios.textContent = Object.entries(row.vacios).map(([key, value]) => `${value} ${key}`).join(" ");
+        tr.appendChild(tdVacios);
 
-                let tdFull = document.createElement('td');
-                tdFull.textContent = Object.entries(row.full).map(([key, value]) => `${value} ${key}`).join(" ");
-                tr.appendChild(tdFull);
+        let tdImo = document.createElement('td');
+        tdImo.textContent = Object.entries(row.imo).map(([key, value]) => `${value} ${key}`).join(" ");
+        tr.appendChild(tdImo);
 
-                let tdConexion = document.createElement('td');
-                tdConexion.textContent = Object.entries(row.conexion).map(([key, value]) => `${value} ${key}`).join(" ");
-                tr.appendChild(tdConexion);
+        let tdFull = document.createElement('td');
+        tdFull.textContent = Object.entries(row.full).map(([key, value]) => `${value} ${key}`).join(" ");
+        tr.appendChild(tdFull);
 
-                let tdTransbordo = document.createElement('td');
-                tdTransbordo.textContent = Object.entries(row.transbordos).map(([key, value]) => `${value} ${key}`).join(" ");
-                tr.appendChild(tdTransbordo);
+        let tdConexion = document.createElement('td');
+        tdConexion.textContent = Object.entries(row.conexion).map(([key, value]) => `${value} ${key}`).join(" ");
+        tr.appendChild(tdConexion);
 
-                let tdSobredimensionados = document.createElement('td');
-                tdSobredimensionados.textContent = Object.entries(row.sobredimensionados).map(([key, value]) => `${value} ${key}`).join(" ");
-                tr.appendChild(tdSobredimensionados);
+        let tdTransbordo = document.createElement('td');
+        tdTransbordo.textContent = Object.entries(row.transbordos).map(([key, value]) => `${value} ${key}`).join(" ");
+        tr.appendChild(tdTransbordo);
 
-                let tdAperturas = document.createElement('td');
-                tdAperturas.textContent = Object.entries(row.aperturas).map(([key, value]) => `${value} ${key}`).join(" ");
-                tr.appendChild(tdAperturas);
+        let tdSobredimensionados = document.createElement('td');
+        tdSobredimensionados.textContent = Object.entries(row.sobredimensionados).map(([key, value]) => `${value} ${key}`).join(" ");
+        tr.appendChild(tdSobredimensionados);
 
-                let tdGrua = document.createElement('td');
-                // Agregar estilos en línea para aumentar el ancho y el padding
-                tdGrua.style.width = '150px'; // Establecer un ancho fijo
-                tdGrua.style.padding = '10px'; // Agregar padding para aumentar el tamaño aparente
-                tr.appendChild(tdGrua);
+        let tdAperturas = document.createElement('td');
+        tdAperturas.textContent = Object.entries(row.aperturas).map(([key, value]) => `${value} ${key}`).join(" ");
+        tr.appendChild(tdAperturas);
 
-                let tdBotonVista = document.createElement('td');
-                let botonVista = document.createElement('button');
-                botonVista.textContent = 'Vista';
-                botonVista.className = 'btn btn-info btn-sm';
-                botonVista.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    openShipView(tr);
-                });
-                tdBotonVista.appendChild(botonVista);
-                tr.appendChild(tdBotonVista);
+        let tdGrua = document.createElement('td');
+        tdGrua.style.width = '150px';
+        tdGrua.style.padding = '10px';
+        tr.appendChild(tdGrua);
 
-                tbody.appendChild(tr);
-            });
-        }
+        let tdBotonVista = document.createElement('td');
+        let botonVista = document.createElement('button');
+        botonVista.textContent = 'Vista';
+        botonVista.className = 'btn btn-info btn-sm';
+        botonVista.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openShipView(tr);
+        });
+        tdBotonVista.appendChild(botonVista);
+        tr.appendChild(tdBotonVista);
+
+        let tdUpperDeck = document.createElement('td');
+        tdUpperDeck.textContent = row.upperDeck || 0;
+        tr.appendChild(tdUpperDeck);
+
+        let tdBellowDeck = document.createElement('td');
+        tdBellowDeck.textContent = row.belowDeck || 0;
+        tr.appendChild(tdBellowDeck);
+
+        tbody.appendChild(tr);
+    });
+}
 
         function selectRow(row, event) {
             if (event.target.tagName === 'SELECT' || event.target.tagName === 'BUTTON') return;
@@ -607,48 +631,136 @@ function updateDataWithPendientes() {
             }, 100);
         }
 
-        function showShipView(row) {
-            const bahiaRange = row.cells[0].textContent;
-            const grúaSeleccionada = row.dataset.grúa || 'No asignada';
-            const shipView = window.open("", "Ship View", "width=800,height=600");
-            shipView.document.body.innerHTML = `
-                <h2>Vista del Barco - Bahía ${bahiaRange} - Grúa: ${grúaSeleccionada}</h2>
-                <div id="containerView"></div>
-            `;
 
-            const containerView = shipView.document.getElementById("containerView");
-            displayContainers(containerView, bahiaRange);
-        }
+      
+      
+function showShipView(row) {
+    const bahiaRange = row.cells[0].textContent;
+    const grúaSeleccionada = row.dataset.grúa || 'No asignada';
+    const shipView = window.open("", "Ship View", "width=1200,height=800");
 
-        function displayContainers(containerView, bahiaRange) {
-            const [startBahia, endBahia] = bahiaRange.split("-").map(Number);
-            const bahiasInRange = [];
-            for (let i = startBahia; i <= endBahia; i++) {
-                bahiasInRange.push(i);
+    // Estilos CSS para la ventana emergente
+    shipView.document.head.innerHTML = `
+        <style>
+            body { font-family: sans-serif; }
+            #bahia-container { position: relative; width: 1000px; height: 600px; }
+            .row-label, .tier-label, .celda, .linea-vertical, .container-box { position: absolute; }
+            .row-label { top: 5px; }
+            .tier-label { right: 10px; }
+            .celda { width: 80px; height: 30px; border: 1px solid #ddd; }
+            .linea-vertical { width: 1px; height: 360px; background-color: #ddd; top: 30px; }
+            .container-box { width: 70px; height: 25px; background-color: lightblue; text-align: center; line-height: 25px; font-size: 10px; overflow: hidden; }
+            #navigation { text-align: center; margin-top: 10px; position: absolute; top: 10px; width: 100%; }
+            #prevBtn, #nextBtn { margin: 0 10px; }
+        </style>
+    `;
+
+    shipView.document.body.innerHTML = `
+        <h2>Vista del Barco - Bahía ${bahiaRange} - Grúa: ${grúaSeleccionada}</h2>
+        <div id="navigation">
+            <button id="prevBtn">Anterior</button>
+            <span id="currentBahia"></span>
+            <button id="nextBtn">Siguiente</button>
+        </div>
+        <div id="bahia-container"></div>
+    `;
+
+    const bahiaContainer = shipView.document.getElementById("bahia-container");
+    const prevBtn = shipView.document.getElementById("prevBtn");
+    const nextBtn = shipView.document.getElementById("nextBtn");
+    const currentBahia = shipView.document.getElementById("currentBahia");
+
+    let [startBahia, endBahia] = bahiaRange.split("-").map(Number);
+    let currentBahiaIndex = startBahia;
+
+    function updateView() {
+        displayContainers(bahiaContainer, currentBahiaIndex);
+        currentBahia.textContent = `Bahía ${currentBahiaIndex}`;
+        prevBtn.disabled = currentBahiaIndex === startBahia;
+        nextBtn.disabled = currentBahiaIndex === endBahia;
+    }
+
+    updateView();
+
+    prevBtn.onclick = () => {
+        currentBahiaIndex--;
+        updateView();
+    };
+
+    nextBtn.onclick = () => {
+        currentBahiaIndex++;
+        updateView();
+    };
+}
+
+function displayContainers(bahiaContainer, bahia) {
+    bahiaContainer.innerHTML = ""; // Limpiar la bahía antes de mostrar nuevos contenedores
+
+    const containers = jsonData.filter(item => parseInt(item["BA"]) === bahia);
+
+    if (containers.length === 0) {
+        bahiaContainer.innerHTML = "<p>No hay contenedores para esta bahía.</p>";
+        return;
+    }
+
+    const rows = [16, 14, 12, 10, 8, 6, 4, 2, 0, 1, 3, 5, 7, 9, 11, 13, 15];
+    const tiers = [94,92, 90, 88, 86, 84, 82, 80, 20, 18, 16, 14, 12, 10, 8, 6, 4, 2]; // Incluye tiers bajo cubierta
+
+    // Crear etiquetas de rows
+    let rowLabelX = 120;
+    rows.forEach(row => {
+        const rowLabel = document.createElement("div");
+        rowLabel.classList.add("row-label");
+        rowLabel.textContent = row;
+        rowLabel.style.left = rowLabelX + "px";
+        bahiaContainer.appendChild(rowLabel);
+        rowLabelX += 85;
+    });
+
+    // Crear etiquetas de tiers
+    let tierLabelY = 35;
+    tiers.forEach(tier => {
+        const tierLabel = document.createElement("div");
+        tierLabel.classList.add("tier-label");
+        tierLabel.textContent = tier;
+        tierLabel.style.right = "-552px";
+        tierLabel.style.top = tierLabelY + "px";
+        bahiaContainer.appendChild(tierLabel);
+        tierLabelY += 35;
+    });
+
+    // Crear celdas de la cuadrícula y contenedores
+    for (let i = 0; i < tiers.length; i++) {
+        for (let j = 0; j < rows.length; j++) {
+            const celda = document.createElement("div");
+            celda.classList.add("celda");
+            celda.style.left = (j * 85 + 90) + "px";
+            celda.style.top = (i * 35 + 30) + "px";
+            bahiaContainer.appendChild(celda);
+
+            // Buscar contenedor en esta posición
+            const container = containers.find(item => parseInt(item["RO"]) === rows[j] && parseInt(item["TI"]) === tiers[i]);
+            if (container) {
+                const containerBox = document.createElement("div");
+                containerBox.classList.add("container-box");
+                containerBox.textContent = container["CONTAINER"]; // Mostrar el número de contenedor
+                containerBox.style.left = (j * 85 + 95) + "px";
+                containerBox.style.top = (i * 35 + 35) + "px";
+                bahiaContainer.appendChild(containerBox);
             }
-            const containers = jsonData.filter(item => bahiasInRange.includes(parseInt(item["BA"])));
-
-            if (containers.length === 0) {
-                containerView.innerHTML = "<p>No hay contenedores para esta bahía.</p>";
-                return;
-            }
-
-            const rows = [...new Set(containers.map(item => item["ROW"]))].sort();
-            const tiers = [...new Set(containers.map(item => item["TIER"]))].sort();
-
-            containerView.style.gridTemplateColumns = `repeat(${tiers.length}, 30px)`;
-
-            let gridHTML = "";
-            rows.forEach(row => {
-                tiers.forEach(tier => {
-                    const container = containers.find(item => item["ROW"] === row && item["TIER"] === tier);
-                    const type = container ? container["TYPE"] : "";
-                    gridHTML += `<div class="container-cell">${type}</div>`;
-                });
-            });
-
-            containerView.innerHTML = `<div class="container-grid">${gridHTML}</div>`;
         }
+    }
+
+    // Crear líneas verticales
+    for (let i = 1; i < rows.length; i++) {
+        const lineaVertical = document.createElement("div");
+        lineaVertical.classList.add("linea-vertical");
+        lineaVertical.style.left = (i * 85 + 87) + "px";
+        bahiaContainer.appendChild(lineaVertical);
+    }
+}
+
+
 
 function showSummary() {
   const summaryData = calculateSummary();
