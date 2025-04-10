@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Administración</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .option-button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 15px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      text-align: center;
+      text-decoration: none;
+      display: block;
+    }
+
+    .option-button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Panel de Administración</h1>
+    <div class="options-grid">
+      <a href="#" class="option-button">MOVIMIENTOS DESPACHOS</a>
+      <a href="#" class="option-button">NAVES1</a>
+      <a href="#" class="option-button">NAVES2</a>
+      <a href="#" class="option-button">PLANIFICACION GRUAS</a>
+      <a href="#" class="option-button">GENERAR CSV</a>
+      <a href="#" class="option-button">PRIVILEGIOS</a>
+    </div>
+    <button onclick="cerrarSesion()" style="margin-top: 20px; padding: 10px 15px; background-color: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer;">Cerrar Sesión</button>
+  </div>
+
+  <script>
+    function cerrarSesion() {
+      localStorage.removeItem('usuario');
+      window.location.href = 'index.html'; // Redirige a la página de inicio de sesión
+    }
+  </script>
+</body>
+</html>
