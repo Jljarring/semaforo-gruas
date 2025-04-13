@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Procesador de Excel a CSV</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.3/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #status {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Procesador de Excel a CSV</h1>
+
+        <input type="file" id="excelFile" accept=".xls,.xlsx">
+
+        <button id="generarCsvGeneral">Generar CSV General por Correlativo</button>
+        <button id="generarCsvIndividual">Generar CSV Individual por Contenedor y Correlativo</button>
+
+        <div id="status"></div>
+    </div>
+
+    <script>
+        // ... (Tu código JavaScript aquí) ...
+      document.getElementById('generarCsvGeneral').addEventListener('click', () => generarCSV('general'));
+        document.getElementById('generarCsvIndividual').addEventListener('click', () => generarCSV('individual'));
+
+        function generarCSV(tipo) {
+            const fileInput = document.getElementById('excelFile');
+            const file = fileInput.files[0];
+            const statusDiv = document.getElementById('status');
+
+            if (!file) {
+                statusDiv.textContent = 'Por favor, selecciona un archivo Excel.';
+                return;
+            }
+
+            statusDiv.textContent = 'Procesando archivo...';
+
+            const lector = new FileReader();
+            lector.onload = function (e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const sheetName = workbook.SheetNames[0];
+                const sheet = workbook.Sheets[sheetName];
+                const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+                procesarDatos(jsonData, tipo);
+            };
+            lector.readAsArrayBuffer(file);
+        }
+
+        function procesarDatos(datos, tipo) {
+            const statusDiv = document.getElementById('status');
+            const correlativos = {};
+
+            // Filtrar y agrupar por correlativo y contenedor
+            for (let i = 1; i < datos.length; i++) {
+                if (!datos[i][12]) { // Verificar si Fecha Aforo RX está vacía
+                    const correlativo = datos[i][2]; // Columna Operación (correlativo)
+                    const contenedor = datos[i][1]; // Columna Contenedor
+                    if (!correlativos[correlativo]) {
+                        correlativos[correlativo] = {};
+                    }
+                    if (tipo === 'general') {
+                        if (!correlativos[correlativo]['contenedores']) {
+                            correlativos[correlativo]['contenedores'] = [];
+                        }
+                        correlativos[correlativo]['contenedores'].push(contenedor);
+                    } else if (tipo === 'individual') {
+                        if (!correlativos[correlativo][contenedor]) {
+                            correlativos[correlativo][contenedor] = [];
+                        }
+                        correlativos[correlativo][contenedor].push(datos[i]);
+                    }
+                }
+            }
+
+            // Generar archivos CSV
+            if (tipo === 'general') {
+                generarCsvGeneral(correlativos);
+            } else if (tipo === 'individual') {
+                generarCsvIndividual(correlativos);
+            }
+
+            statusDiv.textContent = 'Archivos CSV generados con éxito.';
+        }
+
+        function generarCsvGeneral(correlativos) {
+            for (const correlativo in correlativos) {
+                const csvData = generarCsvString(correlativos[correlativo]['contenedores']);
+                const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+                saveAs(blob, correlativo + '.csv');
+            }
+        }
+
+        function generarCsvIndividual(correlativos) {
+            const zip = new JSZip();
+
+            for (const correlativo in correlativos) {
+                const carpetaCorrelativo = zip.folder(correlativo);
+                for (const contenedor in correlativos[correlativo]) {
+                    const csvData = generarCsvString(correlativos[correlativo][contenedor]);
+                    carpetaCorrelativo.file(contenedor + '.csv', csvData);
+                }
+            }
+
+            zip.generateAsync({ type: 'blob' })
+                .then(function (content) {
+                    saveAs(content, 'contenedores_individuales.zip');
+                });
+        }
+
+        function generarCsvString(datos) {
+            if (Array.isArray(datos[0])) { // Si son filas completas
+                let csv = datos[0].join(',') + '\n'; // Encabezados
+                csv += datos.slice(1).map(row => row.map(String).join(',')).join('\n');
+                return csv;
+            } else { // Si son solo contenedores
+                let csv = "Contenedor\n";
+                csv += datos.map(contenedor => contenedor).join('\n');
+                return csv;
+            }
+        }
+    </script>
+</body>
+
+</html>
