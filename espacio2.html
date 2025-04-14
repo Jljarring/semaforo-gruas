@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Capacidad vs Ocupación - T2</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .bloque-bahia { margin-bottom: 20px; }
+        .bloque-header { background-color: #00a0e9; color: white; padding: 10px; text-align: center; }
+        .bahias-container { display: flex; overflow-x: auto; }
+        .bahia-info { border: 1px solid #ddd; padding: 10px; min-width: 50px; text-align: center; }
+        .bahia-header { background-color: #92d050; color: black; }
+        .disponible { background-color: #e2efda; }
+        .programados { background-color: #fce4d9; }
+        .total-disponible { margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h2>Capacidad vs Ocupación - Terminal T2</h2>
+
+    <label><b> Archivo BASE (bloques, bahías, capacidad):</b>
+        <input type="file" id="baseFile" accept=".xlsx,.xls">
+    </label><br><br>
+
+    <label><b> Archivo CONTENEDORES (actual T2):</b>
+        <input type="file" id="contenedoresFile" accept=".xlsx,.xls">
+    </label><br><br>
+
+    <button onclick="procesar()"> Procesar</button>
+
+    <div id="resultado"></div>
+
+    <script>
+        let baseData = [];
+        let contenedoresData = [];
+
+        function leerExcel(file, callback) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+                callback(jsonData);
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function procesar() {
+            const baseFile = document.getElementById("baseFile").files[0];
+            const contFile = document.getElementById("contenedoresFile").files[0];
+
+            if (!baseFile || !contFile) {
+                alert(" Sube los dos archivos primero.");
+                return;
+            }
+
+            leerExcel(baseFile, function (data1) {
+                baseData = data1;
+                leerExcel(contFile, function (data2) {
+                    contenedoresData = data2;
+                    generarEstructura();
+                });
+            });
+        }
+
+        function generarEstructura() {
+            const ocupados = {};
+
+            contenedoresData.forEach(row => {
+                if (row["Terminal"] === "T2" && row["Ubicación"]) {
+                    const ubicacion = row["Ubicación"].trim();
+                    const [bloque, bahiaCompleta] = ubicacion.split('-');
+                    const bahia = bahiaCompleta.substring(0, 3).trim();
+                    const bahiaId = bahia.padStart(3, "0");
+                    const clave = `${bloque}-${bahiaId}`;
+                    ocupados[clave] = (ocupados[clave] || 0) + 1;
+                }
+            });
+
+            const resultadosDiv = document.getElementById("resultado");
+            resultadosDiv.innerHTML = ""; // Limpiar resultados anteriores
+
+            const bloques = {};
+
+            baseData.forEach(row => {
+                const bloque = row["BLOQUE"].trim();
+                const bahia = row["BAHIA"].toString().trim().padStart(3, "0");
+                const capacidad = parseInt(row["CAPACIDAD"]) || 0;
+                const clave = `${bloque}-${bahia}`;
+                const usados = ocupados[clave] || 0;
+
+                if (!bloques[bloque]) {
+                    bloques[bloque] = { bahias: [] };
+                }
+
+                bloques[bloque].bahias.push({
+                    numero: parseInt(bahia),
+                    capacidad: capacidad,
+                    ocupados: usados
+                });
+            });
+
+            for (const bloque in bloques) {
+                const bloqueData = bloques[bloque];
+                const bloqueDiv = document.createElement("div");
+                bloqueDiv.classList.add("bloque-bahia");
+
+                const bloqueHeader = document.createElement("div");
+                bloqueHeader.classList.add("bloque-header");
+                bloqueHeader.textContent = bloque;
+                bloqueDiv.appendChild(bloqueHeader);
+
+                const bahiasContainer = document.createElement("div");
+                bahiasContainer.classList.add("bahias-container");
+
+                let totalDisponible20 = 0;
+                let totalDisponible40 = 0;
+
+                bloqueData.bahias.forEach(bahiaData => {
+                    const bahiaDiv = document.createElement("div");
+                    bahiaDiv.classList.add("bahia-info");
+
+                    const bahiaHeader = document.createElement("div");
+                    bahiaHeader.classList.add("bahia-header");
+                    bahiaHeader.textContent = bahiaData.numero;
+                    bahiaDiv.appendChild(bahiaHeader);
+
+                    const disponibleDiv = document.createElement("div");
+                    disponibleDiv.classList.add("disponible");
+                    disponibleDiv.textContent = bahiaData.capacidad - bahiaData.ocupados;
+                    bahiaDiv.appendChild(disponibleDiv);
+
+                    const programadosDiv = document.createElement("div");
+                    programadosDiv.classList.add("programados");
+                    programadosDiv.textContent = bahiaData.ocupados;
+                    bahiaDiv.appendChild(programadosDiv);
+
+                    bahiasContainer.appendChild(bahiaDiv);
+
+                    if (bahiaData.numero % 2 !== 0) { // Bahía impar
+                        totalDisponible20 += bahiaData.capacidad - bahiaData.ocupados;
+                    } else { // Bahía par
+                        totalDisponible40 += bahiaData.capacidad - bahiaData.ocupados;
+                    }
+                });
+
+                bloqueDiv.appendChild(bahiasContainer);
+
+                const totalDisponibleDiv = document.createElement("div");
+                totalDisponibleDiv.classList.add("total-disponible");
+                totalDisponibleDiv.innerHTML = `Total disponible 20: ${totalDisponible20} <br> Total disponible 40: ${totalDisponible40}`;
+                bloqueDiv.appendChild(totalDisponibleDiv);
+
+                resultadosDiv.appendChild(bloqueDiv);
+            }
+        }
+    </script>
+</body>
+</html>
