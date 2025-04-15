@@ -5,6 +5,7 @@
     <title>Capacidad vs Ocupación - T2</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
+        /* ESTILOS IMPORTANTES - NO ALTERAR */
         body { font-family: Arial, sans-serif; padding: 20px; }
         .bloque-bahia { margin-bottom: 20px; }
         .bloque-header { background-color: #00a0e9; color: white; padding: 10px; text-align: center; }
@@ -14,26 +15,194 @@
         .disponible { background-color: #e2efda; }
         .programados { background-color: #fce4d9; }
         .total-disponible { margin-top: 10px; }
+
+        /* ESTILOS ADICIONALES PARA LOS BOTONES Y CONTENEDORES */
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .file-input-container { /* Nuevo contenedor para los file inputs */
+            display: flex;
+            flex-direction: column; /* Apila los grupos de carga de archivos verticalmente */
+            align-items: center; /* Centra horizontalmente los grupos de carga de archivos */
+            gap: 15px; /* Espacio entre los grupos de carga de archivos */
+            margin-bottom: 20px; /* Espacio debajo del contenedor */
+        }
+
+        .file-input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            width: 80%; /* Ancho para que no ocupe todo el ancho en pantallas grandes */
+            max-width: 600px; /* Ancho máximo */
+        }
+
+        .file-input-group label {
+            font-weight: bold;
+            color: #555;
+            width: 200px; /* Ancho fijo para las etiquetas */
+            text-align: left;
+        }
+
+        .file-input-group input[type="file"] {
+            flex-grow: 1; /* El input ocupa el espacio restante */
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .button-container { /* Contenedor para los botones */
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            justify-content: center; /* Centra los botones horizontalmente */
+        }
+
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            color: #333;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #e0e0e0;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        button#verResumenBtn {
+            background-color: #00a0e9;
+            color: white;
+            border-color: #007acc;
+            box-shadow: 2px 2px 5px rgba(0, 160, 233, 0.3);
+        }
+
+        button#verResumenBtn:hover {
+            background-color: #007acc;
+            box-shadow: 2px 2px 7px rgba(0, 122, 204, 0.5);
+        }
+
+        button#limpiarBtn {
+            background-color: #ff9800;
+            color: white;
+            border-color: #f57c00;
+            box-shadow: 2px 2px 5px rgba(255, 152, 0, 0.3);
+        }
+
+        button#limpiarBtn:hover {
+            background-color: #f57c00;
+            box-shadow: 2px 2px 7px rgba(245, 124, 0, 0.5);
+        }
+
+        /* Estilos para el modal */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            display: flex; /* Enable flexbox for centering */
+            justify-content: center; /* Center horizontally */
+            align-items: center; /* Center vertically */
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%; /* Adjust as needed */
+            max-width: 600px; /* Optional: set a maximum width */
+            margin: auto;
+            position: relative;
+        }
+
+        .close-button {
+            color: #aaa;
+            position: absolute; /* Posicionamiento absoluto dentro del modal-content */
+            top: 10px;
+            right: 15px;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        #resumenEspacio {
+            width: 100%;
+        }
+
+        #resumenEspacio table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+        }
+
+        #resumenEspacio th, #resumenEspacio td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        #resumenEspacio th {
+            background-color: #f2f2f2;
+        }
+
+        #resumenEspacio tfoot {
+            font-weight: bold;
+            background-color: #e0e0e0;
+        }
     </style>
 </head>
 <body>
-    <h2>Capacidad vs Ocupación - Terminal T2</h2>
+    <h2>Disponibilidad de espacios Bloques/bahías - Terminal T2</h2>
 
-    <label><b> Archivo BASE (bloques, bahías, capacidad):</b>
-        <input type="file" id="baseFile" accept=".xlsx,.xls">
-    </label><br><br>
+    <div class="file-input-container">
+        <div class="file-input-group">
+          <label> <b>Archivo BASE(CAPACIDAD)</b> </label>
+            <input type="file" id="baseFile" accept=".xlsx,.xls">
+        </div>
+        <div class="file-input-group">            
+            <label> <b>Archivo CONTENEDORES (actual T2)</b> </label>
+            <input type="file" id="contenedoresFile" accept=".xlsx,.xls">
+        </div>
+    </div>
 
-    <label><b> Archivo CONTENEDORES (actual T2):</b>
-        <input type="file" id="contenedoresFile" accept=".xlsx,.xls">
-    </label><br><br>
-
-    <button onclick="procesar()"> Procesar</button>
+    <div class="button-container"> <BR>
+        <button onclick="procesar()"> Procesar</button>
+        <button id="verResumenBtn">Ver Resumen</button>
+        <button id="limpiarBtn" onclick="limpiarTodo()"> Limpiar</button>
+    </div>
+<BR>
 
     <div id="resultado"></div>
+
+    <div id="resumenModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="cerrarModal()">&times;</span>
+            <h2>Espacio Disponible T2</h2>
+            <div id="resumenEspacio">
+            </div>
+        </div>
+    </div>
 
     <script>
         let baseData = [];
         let contenedoresData = [];
+        let resumenGlobal = {};
 
         function leerExcel(file, callback) {
             const reader = new FileReader();
@@ -67,7 +236,6 @@
 
         function generarEstructura() {
             const ocupados = {};
-
             contenedoresData.forEach(row => {
                 if (row["Terminal"] === "T2" && row["Ubicación"]) {
                     const ubicacion = row["Ubicación"].trim();
@@ -83,6 +251,7 @@
             resultadosDiv.innerHTML = ""; // Limpiar resultados anteriores
 
             const bloques = {};
+            resumenGlobal = { porBloque: {}, totalGeneral20: 0, totalGeneral40: 0 };
 
             baseData.forEach(row => {
                 const bloque = row["BLOQUE"].trim();
@@ -90,18 +259,29 @@
                 const capacidad = parseInt(row["CAPACIDAD"]) || 0;
                 const clave = `${bloque}-${bahia}`;
                 const usados = ocupados[clave] || 0;
+                const disponible = capacidad - usados;
 
                 if (!bloques[bloque]) {
-                    bloques[bloque] = { bahias: [] };
+                    bloques[bloque] = { totalDisponible20: 0, totalDisponible40: 0 };
                 }
 
-                bloques[bloque].bahias.push({
-                    numero: parseInt(bahia),
-                    capacidad: capacidad,
-                    ocupados: usados
-                });
+                if (parseInt(bahia) % 2 !== 0) { // Bahía impar (asumimos para 20')
+                    bloques[bloque].totalDisponible20 += disponible;
+                } else { // Bahía par (asumimos para 40')
+                    bloques[bloque].totalDisponible40 += disponible;
+                }
             });
 
+            for (const bloque in bloques) {
+                resumenGlobal.porBloque[bloque] = {
+                    disponible20: bloques[bloque].totalDisponible20,
+                    disponible40: bloques[bloque].totalDisponible40
+                };
+                resumenGlobal.totalGeneral20 += bloques[bloque].totalDisponible20;
+                resumenGlobal.totalGeneral40 += bloques[bloque].totalDisponible40;
+            }
+
+            // Generar la visualización principal (sin cambios significativos aquí)
             for (const bloque in bloques) {
                 const bloqueData = bloques[bloque];
                 const bloqueDiv = document.createElement("div");
@@ -115,34 +295,33 @@
                 const bahiasContainer = document.createElement("div");
                 bahiasContainer.classList.add("bahias-container");
 
-                let totalDisponible20 = 0;
-                let totalDisponible40 = 0;
+                baseData.forEach(row => {
+                    if (row["BLOQUE"].trim() === bloque) {
+                        const bahia = row["BAHIA"].toString().trim().padStart(3, "0");
+                        const capacidad = parseInt(row["CAPACIDAD"]) || 0;
+                        const clave = `${bloque}-${bahia}`;
+                        const usados = ocupados[clave] || 0;
+                        const disponible = capacidad - usados;
 
-                bloqueData.bahias.forEach(bahiaData => {
-                    const bahiaDiv = document.createElement("div");
-                    bahiaDiv.classList.add("bahia-info");
+                        const bahiaDiv = document.createElement("div");
+                        bahiaDiv.classList.add("bahia-info");
 
-                    const bahiaHeader = document.createElement("div");
-                    bahiaHeader.classList.add("bahia-header");
-                    bahiaHeader.textContent = bahiaData.numero;
-                    bahiaDiv.appendChild(bahiaHeader);
+                        const bahiaHeader = document.createElement("div");
+                        bahiaHeader.classList.add("bahia-header");
+                        bahiaHeader.textContent = parseInt(bahia);
+                        bahiaDiv.appendChild(bahiaHeader);
 
-                    const disponibleDiv = document.createElement("div");
-                    disponibleDiv.classList.add("disponible");
-                    disponibleDiv.textContent = bahiaData.capacidad - bahiaData.ocupados;
-                    bahiaDiv.appendChild(disponibleDiv);
+                        const disponibleDiv = document.createElement("div");
+                        disponibleDiv.classList.add("disponible");
+                        disponibleDiv.textContent = disponible;
+                        bahiaDiv.appendChild(disponibleDiv);
 
-                    const programadosDiv = document.createElement("div");
-                    programadosDiv.classList.add("programados");
-                    programadosDiv.textContent = bahiaData.ocupados;
-                    bahiaDiv.appendChild(programadosDiv);
+                        const programadosDiv = document.createElement("div");
+                        programadosDiv.classList.add("programados");
+                        programadosDiv.textContent = usados;
+                        bahiaDiv.appendChild(programadosDiv);
 
-                    bahiasContainer.appendChild(bahiaDiv);
-
-                    if (bahiaData.numero % 2 !== 0) { // Bahía impar
-                        totalDisponible20 += bahiaData.capacidad - bahiaData.ocupados;
-                    } else { // Bahía par
-                        totalDisponible40 += bahiaData.capacidad - bahiaData.ocupados;
+                        bahiasContainer.appendChild(bahiaDiv);
                     }
                 });
 
@@ -150,12 +329,96 @@
 
                 const totalDisponibleDiv = document.createElement("div");
                 totalDisponibleDiv.classList.add("total-disponible");
-                totalDisponibleDiv.innerHTML = `Total disponible 20: ${totalDisponible20} <br> Total disponible 40: ${totalDisponible40}`;
+                totalDisponibleDiv.innerHTML = `Total disponible 20: ${bloques[bloque].totalDisponible20} <br> Total disponible 40: ${bloques[bloque].totalDisponible40}`;
                 bloqueDiv.appendChild(totalDisponibleDiv);
 
                 resultadosDiv.appendChild(bloqueDiv);
             }
         }
+
+        // JavaScript para el modal
+        const modal = document.getElementById("resumenModal");
+        const btn = document.getElementById("verResumenBtn");
+        const resumenDiv = document.getElementById("resumenEspacio");
+
+        // Asegúrate de que esta función solo se llame al hacer clic en el botón
+        btn.onclick = function() {
+            mostrarResumenModal();
+        }
+
+        function mostrarResumenModal() {
+            resumenDiv.innerHTML = ""; // Limpiar contenido anterior
+
+            const tabla = document.createElement("table");
+            const thead = document.createElement("thead");
+            const tbody = document.createElement("tbody");
+            const tfoot = document.createElement("tfoot");
+
+            // Encabezado de la tabla
+            let rowHead = thead.insertRow();
+            let thBloque = document.createElement("th");
+            thBloque.textContent = "Bloque";
+            rowHead.appendChild(thBloque);
+            let thDisp20 = document.createElement("th");
+            thDisp20.textContent = "Disponible 20'";
+            rowHead.appendChild(thDisp20);
+            let thDisp40 = document.createElement("th");
+            thDisp40.textContent = "Disponible 40'";
+            rowHead.appendChild(thDisp40);
+            tabla.appendChild(thead);
+
+            // Cuerpo de la tabla con datos por bloque
+            for (const bloque in resumenGlobal.porBloque) {
+                let rowBody = tbody.insertRow();
+                let cellBloque = rowBody.insertCell();
+                cellBloque.textContent = bloque;
+                let cellDisp20 = rowBody.insertCell();
+                cellDisp20.textContent = resumenGlobal.porBloque[bloque].disponible20;
+                let cellDisp40 = rowBody.insertCell();
+                cellDisp40.textContent = resumenGlobal.porBloque[bloque].disponible40;
+            }
+            tabla.appendChild(tbody);
+
+            // Pie de la tabla con el total general
+            let rowFoot = tfoot.insertRow();
+            let cellFootBloque = rowFoot.insertCell();
+            cellFootBloque.textContent = "Total General";
+            cellFootBloque.colSpan = 1;
+            let cellFootDisp20 = rowFoot.insertCell();
+            cellFootDisp20.textContent = resumenGlobal.totalGeneral20;
+            let cellFootDisp40 = rowFoot.insertCell();
+            cellFootDisp40.textContent = resumenGlobal.totalGeneral40;
+            tabla.appendChild(tfoot);
+
+            resumenDiv.appendChild(tabla);
+            modal.style.display = "block";
+        }
+
+        function cerrarModal() {
+            modal.style.display = "none";
+        }
+
+        // Cerrar el modal si se hace clic fuera de él
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                cerrarModal();
+            }
+        }
+        
+      // para el  boton limpieza
+      function limpiarTodo() {
+            document.getElementById("baseFile").value = "";
+            document.getElementById("contenedoresFile").value = "";
+            document.getElementById("resultado").innerHTML = "";
+            baseData = [];
+            contenedoresData = [];
+            resumenGlobal = {};
+            cerrarModal();
+        }
+        // Asegúrate de que el modal esté oculto al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('resumenModal').style.display = 'none';
+        });
     </script>
 </body>
 </html>
