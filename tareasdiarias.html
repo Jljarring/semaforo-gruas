@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subir y Procesar Archivos Excel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            padding: 8px 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        input[type="file"],
+        input[type="datetime-local"] {
+            margin: 10px 0;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            padding: 10px 15px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+            border-radius: 4px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #jsonOutput {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            background-color: #f1f1f1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            margin-top: 20px;
+            border-radius: 4px;
+        }
+
+        #filterControls {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #eee;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+        }
+
+        #filterControls label {
+            display: inline-block;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Subir y Procesar Archivos Excel</h1>
+
+    <input type="file" id="excelFile1" />
+    <button onclick="processFirstFile()">Subir Primer Archivo</button>
+
+    <br>
+
+    <input type="file" id="excelFile2" disabled />
+    <button onclick="processSecondFile()" disabled>Subir Segundo Archivo</button>
+
+    <br>
+
+    <input type="file" id="excelFile3" disabled />
+    <button onclick="processThirdFile()" disabled>Subir Tercer Archivo</button>
+
+    <div id="filterControls">
+        <h2>Filtrar por Rango de Fecha y Hora</h2>
+        <label for="startDate">Fecha y Hora de Inicio:</label>
+        <input type="datetime-local" id="startDate">
+        <label for="endDate">Fecha y Hora de Fin:</label>
+        <input type="datetime-local" id="endDate">
+        <button onclick="filterByDateRange()">Filtrar por Fecha</button>
+        <button onclick="filterByObservacion()">Filtrar por Observación</button>
+    </div>
+
+    <h2>Datos Filtrados</h2>
+    <div id="tableOutput"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.2/xlsx.full.min.js"></script>
+
+    <script>
+        let jsonData1 = []; // Datos del primer archivo
+        let jsonData2 = []; // Datos del segundo archivo
+        let jsonData3 = []; // Datos del tercer archivo
+        let combinedData = []; // Datos combinados de los tres archivos
+
+        // Función para procesar el primer archivo
+        function processFirstFile() {
+            const fileInput1 = document.getElementById('excelFile1');
+            const file1 = fileInput1.files[0];
+
+            if (!file1) {
+                alert('Por favor, selecciona el primer archivo.');
+                return;
+            }
+
+            const reader1 = new FileReader();
+            reader1.onload = function (e) {
+                const data1 = e.target.result;
+                const workbook1 = XLSX.read(data1, { type: 'binary' });
+
+                // Procesar la primera hoja
+                const sheetName1 = workbook1.SheetNames[0];
+                const sheet1 = workbook1.Sheets[sheetName1];
+                jsonData1 = XLSX.utils.sheet_to_json(sheet1, { header: 2, defval: "", range: 2 });
+
+                // Habilitar el segundo archivo y botón
+                document.getElementById('excelFile2').disabled = false;
+                document.querySelector('button[onclick="processSecondFile()"]').disabled = false;
+                alert('Primer archivo procesado. Ahora puedes subir el segundo archivo.');
+            };
+
+            reader1.readAsBinaryString(file1);
+        }
+
+        // Función para procesar el segundo archivo
+        function processSecondFile() {
+            const fileInput2 = document.getElementById('excelFile2');
+            const file2 = fileInput2.files[0];
+
+            if (!file2) {
+                alert('Por favor, selecciona el segundo archivo.');
+                return;
+            }
+
+            const reader2 = new FileReader();
+            reader2.onload = function (e) {
+                const data2 = e.target.result;
+                const workbook2 = XLSX.read(data2, { type: 'binary' });
+
+                // Procesar la segunda hoja
+                const sheetName2 = workbook2.SheetNames[0];
+                const sheet2 = workbook2.Sheets[sheetName2];
+                jsonData2 = XLSX.utils.sheet_to_json(sheet2, { header: 2, defval: "", range: 2 });
+
+                // Habilitar el tercer archivo y botón
+                document.getElementById('excelFile3').disabled = false;
+                document.querySelector('button[onclick="processThirdFile()"]').disabled = false;
+                alert('Segundo archivo procesado. Ahora puedes subir el tercer archivo.');
+            };
+
+            reader2.readAsBinaryString(file2);
+        }
+
+        // Función para procesar el tercer archivo
+        function processThirdFile() {
+            const fileInput3 = document.getElementById('excelFile3');
+            const file3 = fileInput3.files[0];
+
+            if (!file3) {
+                alert('Por favor, selecciona el tercer archivo.');
+                return;
+            }
+
+            const reader3 = new FileReader();
+            reader3.onload = function (e) {
+                const data3 = e.target.result;
+                const workbook3 = XLSX.read(data3, { type: 'binary' });
+
+                // Procesar la tercera hoja
+                const sheetName3 = workbook3.SheetNames[0];
+                const sheet3 = workbook3.Sheets[sheetName3];
+                jsonData3 = XLSX.utils.sheet_to_json(sheet3, { header: 2, defval: "", range: 2 });
+
+                // Combinar los datos de los tres archivos
+                combinedData = jsonData1.concat(jsonData2, jsonData3);
+
+                // Agregar las columnas 'Acción', 'Observación', 'Desde', 'Hacia', 'Tarea'
+                addAccionColumn(combinedData);
+                addTareaColumn(combinedData);
+
+                // Mostrar los datos combinados en una tabla
+                displayTable(combinedData);
+            };
+
+            reader3.readAsBinaryString(file3);
+        }
+
+        // Función para agregar la columna 'Acción', 'Observación', 'Desde' y 'Hacia'
+        function addAccionColumn(data) {
+            const ubicaciones = {
+                'T1/Z1': 'CAMARA DE FRIO',
+                'T1/Z2': 'AFORO EXPO',
+                'T1/Z3': 'INSP. PREEMBARQUE',
+                'T1/Z4': 'INSP. PREEMBARQUE',
+                'T1/Z5': 'INSPECCION PNA',
+                'T2/P1': 'AFORO IMPO',
+                'T2/O1': 'AFORO IMPO',
+                'T2/CF': 'DESCONSOLIDACION',
+                'T1/H3': 'INSPECCION PNA'
+            };
+
+            data.forEach(row => {
+                const detalle = row['Detalle'] || '';
+                const area = row['Terminal'] || '';  // Asumimos que 'Área' está en la columna 'Área'
+                const baroti = row['Area'] || '';  // Asumimos que 'Baroti' está en la columna 'Baroti'
+
+                // Agregar columna 'Observación' para "YTM Se realiza Acopio del Contenedor"
+                if (detalle.includes('YTM Se realiza Acopio del Contenedor')) {
+                    row['Observación'] = 'Ejecución';
+                    row['Desde'] = 'EX/T1';
+                    row['Hacia'] = area + '/' + baroti;
+                    row['Acción'] = 'Recepcionar';
+                    row['Tarea'] = 'EXPO FULL';
+                    console.log("¡Se asignó EXPO FULL para:", detalle); // Agrega esta línea
+
+                }
+                // Agregar columna 'Observación' para "Se despacha el contenedor en camion patente"
+                else if (detalle.includes('Se despacha el contenedor en camion patente')) {
+                    row['Observación'] = 'Ejecución';
+                    row['Desde'] = 'EX/T1';
+                    row['Hacia'] = area + '/' + baroti;
+                    row['Acción'] = 'Despacho';
+                    row['Tarea'] = 'DESPACHO FULL';
+                    console.log("¡Se asignó DESPACHO FULL para:", detalle); // Agrega esta línea
+
+                }
+
+                else {
+                    // Agregar columna 'Observación' para Planificación
+                    if (detalle.includes('Se realiza proyeccion de movimiento')) {
+                        row['Observación'] = 'Planificación';
+                    }
+                    // Agregar columna 'Observación' para Ejecución
+                    else if (detalle.includes('Se actualiza a area virtual')) {
+                        row['Observación'] = 'Ejecución';
+                    } else {
+                        row['Observación'] = ''; // Dejar en blanco si no coincide
+                    }
+
+                    // Agregar columna 'Desde' y 'Hacia' para "Planificación"
+                    if (row['Observación'] === 'Planificación') {
+                        const desdeMatch = detalle.match(/Se realiza proyeccion de movimiento: Desde : ([A-Za-z0-9\/\-]+)/);
+                        if (desdeMatch) {
+                            const desdeStr = desdeMatch[1];
+                            row['Desde'] = desdeStr.length >= 5 ? desdeStr.slice(0, 5) : '';
+                        } else {
+                            row['Desde'] = '';
+                        }
+
+                        const haciaMatch = detalle.match(/a\s*:\s*([A-Za-z0-9\/\-]+)/);
+                        if (haciaMatch) {
+                            const haciaStr = haciaMatch[1];
+                            row['Hacia'] = haciaStr.length >= 5 ? haciaStr.slice(0, 5) : haciaStr;
+                        } else {
+                            row['Hacia'] = '';
+                        }
+                    }
+
+                    // Agregar columna 'Desde' y 'Hacia' para "Ejecución"
+                    if (row['Observación'] === 'Ejecución') {
+                        const desdeMatch = detalle.match(/direccion desde\s*([A-Za-z0-9\/\-]+)-/);
+                        if (desdeMatch) {
+                            const desdeStr = desdeMatch[1];
+                            row['Desde'] = desdeStr;
+                        } else {
+                            row['Desde'] = '';
+                        }
+
+                        const haciaMatch = detalle.match(/a\s*([A-Za-z0-9\/\-]+)-/);
+                        if (haciaMatch) {
+                            const haciaStr = haciaMatch[1];
+                            row['Hacia'] = haciaStr;
+                        } else {
+                            row['Hacia'] = '';
+                        }
+                    }
+
+                    // Agregar columna 'Acción' según las condiciones
+                    if (ubicaciones[row['Desde']]) {
+                        row['Acción'] = 'Levantamiento';
+                    } else if (ubicaciones[row['Hacia']]) {
+                        row['Acción'] = 'Posicionar';
+                    } else {
+                        row['Acción'] = 'Movilizar';
+                    }
+                }
+            });
+        }
+
+        // Función para agregar la columna 'Tarea' basada en los valores de 'Desde', 'Hacia' y 'Detalle'
+        function addTareaColumn(data) {
+            const ubicaciones = {
+                'T1/Z1': 'CAMARA DE FRIO',
+                'T1/Z2': 'AFORO EXPO',
+                'T1/Z3': 'INSP. PREEMBARQUE',
+                'T1/Z4': 'INSP. PREEMBARQUE',
+                'T1/Z5': 'INSPECCION PNA',
+                'T2/P1': 'AFORO IMPO',
+                'T2/O1': 'AFORO IMPO',
+                'T2/CF': 'DESCONSOLIDACION',
+                'T1/H3': 'INSPECCION PNA'
+            };
+
+            data.forEach(row => {
+                const desde = row['Desde'] || '';
+                const hacia = row['Hacia'] || '';
+                const detalle = row['Detalle'] || '';
+
+                // Condición para agregar 'EXPO FULL' si el texto 'YTM Se realiza Acopio del Contenedor' está en 'Detalle'
+                if (detalle.includes('YTM Se realiza Acopio del Contenedor')) {
+                    row['Tarea'] = 'EXPO FULL';
+                } else if (detalle.includes('Se despacha el contenedor en camion patente')) {
+                    row['Tarea'] = 'DESPACHO FULL';
+                } else if (ubicaciones[desde]) {
+                    row['Tarea'] = ubicaciones[desde];
+                } else if (ubicaciones[hacia]) {
+                    row['Tarea'] = ubicaciones[hacia];
+                } else {
+                    row['Tarea'] = 'TRASLADO IMPO'; // Si no coincide con ninguna ubicación ni la condición de 'Detalle'
+                }
+            });
+        }
+
+        // Función para mostrar los datos en una tabla HTML con columnas específicas
+        function displayTable(jsonData) {
+            const tableOutput = document.getElementById('tableOutput');
+            let table = '<table><thead><tr>';
+            const columnasVisibles = ['Fecha Mov.', 'Observación', 'Acción', 'Desde', 'Hacia', 'Tarea'];
+
+            // Crear encabezados de la tabla con las columnas visibles
+            columnasVisibles.forEach(key => {
+                table += `<th>${key}</th>`;
+            });
+            table += '</tr></thead><tbody>';
+
+            // Crear las filas de la tabla con las columnas visibles
+            jsonData.forEach((row, rowIndex) => {
+                table += '<tr>';
+                columnasVisibles.forEach(key => {
+                    let cellContent = row[key];
+                    let isEditable = (key === 'Tarea');
+
+                    // Deshabilitar la edición de 'Tarea' si 'Detalle' contiene la frase original
+                    const originalDetalle = combinedData[rowIndex] ? combinedData[rowIndex]['Detalle'] : '';
+                    if (key === 'Tarea' && originalDetalle && originalDetalle.includes('YTM Se realiza Acopio del Contenedor')) {
+                        isEditable = false; // No permitir editar 'Tarea' para este caso
+                    }
+
+                    if (isEditable) {
+                        table += `<td contenteditable="true" onblur="updateTarea(<span class="math-inline">\{rowIndex\}, '</span>{key}', this.innerText)">${cellContent}</td>`;
+                    } else {
+                        table += `<td>${cellContent}</td>`;
+                    }
+                });
+                table += '</tr>';
+            });
+
+            table += '</tbody></table>';
+            tableOutput.innerHTML = jsonData.length > 0 ? table : '<p>No hay datos para mostrar.</p>';
+        }
+
+        // Función para actualizar la tarea al editar la celda
+        function updateTarea(rowIndex, key, value) {
+            console.log(`Row ${rowIndex} updated: ${key} = ${value}`);
+            // Aquí puedes implementar la lógica para actualizar el array 'combinedData' si lo necesitas
+        }
+
+		
+		function convertirFecha(fechaString) {
+			// Expresión regular para dividir el formato DD/MM/YYYY HH:mm
+			const partes = fechaString.split(' ');
+			const fecha = partes[0].split('/');
+			const hora = partes[1].split(':');
+
+			// Convertimos a formato YYYY-MM-DDTHH:mm:ss
+			const fechaISO = `${fecha[2]}-${fecha[1]}-${fecha[0]}T${hora[0]}:${hora[1]}:00`;
+
+			return new Date(fechaISO);  // Devuelve un objeto Date
+		}
+
+        function filterByDateRange() {
+            const startDateInput = document.getElementById('startDate').value;
+            const endDateInput = document.getElementById('endDate').value;
+
+            if (!startDateInput || !endDateInput) {
+                alert('Por favor, selecciona la fecha y hora de inicio y fin para filtrar.');
+                return;
+            }
+
+            const startDate = new Date(startDateInput);
+            const endDate = new Date(endDateInput);
+
+            if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+                alert('Formato de fecha y hora inválido.');
+                return;
+            }
+
+            const filteredData = combinedData.filter(row => {
+                
+                  const fechaMovString = row['Fecha Mov.'];
+                if (fechaMovString) {
+                    const fechaMov = convertirFecha(fechaMovString);
+                    return fechaMov >= startDate && fechaMov <= endDate;
+                }
+                return false;
+            });
+
+            // Después de filtrar por fecha, aplica el filtro por observación
+            const finalFilteredData = filteredData.filter(row =>
+                row['Observación'] === 'Ejecución' || row['Observación'] === 'Planificación'
+            );
+
+            // Ocultar las columnas especificadas antes de mostrar la tabla
+            const columnasOcultar = ['Host_Id', 'Spid', 'Rut', 'Detalle', 'Cod. Proceso', 'Cod. Porta', 'Terminal', 'Area', 'Baroti'];
+            const datosVisibles = finalFilteredData.map(row => {
+                const newRow = {};
+                for (const key in row) {
+                    if (!columnasOcultar.includes(key)) {
+                        newRow[key] = row[key];
+                    }
+                }
+                return newRow;
+            });
+
+            displayTable(datosVisibles);
+        }
+
+        function filterByObservacion() {
+            const filteredData = combinedData.filter(row =>
+                row['Observación'] === 'Ejecución' || row['Observación'] === 'Planificación'
+            );
+
+            // Ocultar las columnas especificadas antes de mostrar la tabla
+            const columnasOcultar = ['Host_Id', 'Spid', 'Rut', 'Detalle', 'Cod. Proceso', 'Cod. Porta', 'Terminal', 'Area', 'Baroti'];
+            const datosVisibles = filteredData.map(row => {
+                const newRow = {};
+                for (const key in row) {
+                    if (!columnasOcultar.includes(key)) {
+                        newRow[key] = row[key];
+                    }
+                }
+                return newRow;
+            });
+
+            displayTable(datosVisibles);
+        }
+
+        // Modificación de la función displayTable para aceptar los datos filtrados con columnas ocultas
+        function displayTable(jsonData) {
+            const tableOutput = document.getElementById('tableOutput');
+            let table = '<table><thead><tr>';
+
+            if (jsonData.length > 0) {
+                const columnasVisibles = Object.keys(jsonData[0]);
+                columnasVisibles.forEach(key => {
+                    table += `<th>${key}</th>`;
+                });
+                table += '</tr></thead><tbody>';
+
+                jsonData.forEach((row, rowIndex) => {
+                    table += '<tr>';
+                    columnasVisibles.forEach(key => {
+                        let cellContent = row[key];
+                        let isEditable = (key === 'Tarea');
+
+                        // Deshabilitar la edición de 'Tarea' si 'Detalle' contenía la frase original (en los datos combinados)
+                        const originalRow = combinedData.find((item, index) => index === rowIndex);
+                        if (isEditable && originalRow && (originalRow['Detalle'] || '').includes('YTM Se realiza Acopio del Contenedor')) {
+                            isEditable = false;
+                        }
+
+                        if (isEditable) {
+                            table += `<td contenteditable="true" onblur="updateTarea(${rowIndex}, '${key}', this.innerText)">${cellContent}</td>`;
+                        } else {
+                            table += `<td>${cellContent}</td>`;
+                        }
+                    });
+                    table += '</tr>';
+                });
+
+                table += '</tbody></table>';
+                tableOutput.innerHTML = table;
+            } else {
+                tableOutput.innerHTML = '<p>No hay datos para mostrar.</p>';
+            }
+        }
+    </script>
+</body>
+</html>
