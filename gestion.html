@@ -241,8 +241,6 @@
    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
 
-
-
            // Verificar si el usuario está autenticado o es invitado
         if (!localStorage.getItem('usuario') && localStorage.getItem('usuario') !== 'invitado') {
             window.location.href = '/semaforo-gruas/'; // Redirigir a la página de inicio de sesión
@@ -258,24 +256,25 @@
         let datosPATIO = [];
         let datosDESPACHO = [];
 
-        function cargarExcel(event, tipo) {
-            let archivo = event.target.files[0];
-            let lector = new FileReader();
-            lector.onload = function (e) {
-                let data = new Uint8Array(e.target.result);
-                let workbook = XLSX.read(data, { type: 'array' });
-                let sheetName = workbook.SheetNames[0];
-                let sheet = workbook.Sheets[sheetName];
-                let jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+function cargarExcel(event, tipo) {
+    let archivo = event.target.files[0];
+    let lector = new FileReader();
+    lector.onload = function (e) {
+        let data = new Uint8Array(e.target.result);
+        let workbook = XLSX.read(data, { type: 'array' });
+        let sheetName = workbook.SheetNames[0];
+        let sheet = workbook.Sheets[sheetName];
+        let jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
-                if (tipo === 'PATIO') {
-                    datosPATIO = jsonData;
-                } else if (tipo === 'DESPACHO') {
-                    datosDESPACHO = jsonData;
-                }
-            };
-            lector.readAsArrayBuffer(archivo);
+        if (tipo === 'PATIO') {
+            // Modificación para empezar desde la fila 2
+            datosPATIO = jsonData.slice(1);
+        } else if (tipo === 'DESPACHO') {
+            datosDESPACHO = jsonData;
         }
+    };
+    lector.readAsArrayBuffer(archivo);
+}
 
 document.getElementById('btnAyuda').addEventListener('click', function() {
     // Crear la ventana emergente
